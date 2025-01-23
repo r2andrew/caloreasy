@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:openfoodfacts/openfoodfacts.dart';
+import 'dart:async';
 
 class AddFoodPage extends StatefulWidget {
   const AddFoodPage({super.key});
@@ -8,6 +10,31 @@ class AddFoodPage extends StatefulWidget {
 }
 
 class _AddFoodPageState extends State<AddFoodPage> {
+
+
+
+  Future<Product?> getProduct(String barcode) async {
+
+    OpenFoodAPIConfiguration.userAgent = UserAgent(
+        name: 'caloreasy'
+    );
+
+    final ProductQueryConfiguration configuration = ProductQueryConfiguration(
+      barcode,
+      language: OpenFoodFactsLanguage.ENGLISH,
+      fields: [ProductField.ALL],
+      version: ProductQueryVersion.v3,
+    );
+    final ProductResultV3 result =
+          await OpenFoodAPIClient.getProductV3(configuration);
+
+    if (result.status == ProductResultV3.statusSuccess) {
+      return result.product;
+    } else {
+      throw Exception('product not found');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -16,8 +43,24 @@ class _AddFoodPageState extends State<AddFoodPage> {
         backgroundColor: Colors.black,
       ),
 
-      // TODO: do any call to openfood api using wrapper
-      body: Text('add food page'),
+      body: FutureBuilder(
+          future: getProduct('0048151623426'),
+          builder: (BuildContext context, AsyncSnapshot<Product?> snapshot) {
+            switch (snapshot.connectionState) {
+              case ConnectionState.waiting:
+                return Center(child: CircularProgressIndicator());
+              case ConnectionState.done:
+                if (snapshot.hasError) {
+                  return Text(snapshot.error.toString());
+                } else {
+                  return Text(snapshot.data?.productName
+                      ?? 'ERROR: api returned unexpected data shape');
+                }
+
+              default: return Text('ERROR: unhandled state');
+            }
+          }
+      ),
     );
   }
 }
