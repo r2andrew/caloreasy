@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:openfoodfacts/openfoodfacts.dart';
-import 'dart:async';
 
 class AddFoodPage extends StatefulWidget {
   const AddFoodPage({super.key});
@@ -11,9 +10,21 @@ class AddFoodPage extends StatefulWidget {
 
 class _AddFoodPageState extends State<AddFoodPage> {
 
+  // OpenFoodAPI creds
+  final User? user = User(
+      userId: 'r2andrew',
+      password: 'caloreasy'
+  );
 
+  List<Product?> returnedProducts = [];
+  bool loading = false;
 
-  Future<Product?> getProduct(String barcode) async {
+  void getProductByBarcode(String barcode) async {
+
+    setState(() {
+      loading = true;
+      returnedProducts = [];
+    });
 
     OpenFoodAPIConfiguration.userAgent = UserAgent(
         name: 'caloreasy'
@@ -29,10 +40,40 @@ class _AddFoodPageState extends State<AddFoodPage> {
           await OpenFoodAPIClient.getProductV3(configuration);
 
     if (result.status == ProductResultV3.statusSuccess) {
-      return result.product;
+      setState(() {
+        returnedProducts.add(result.product);
+        loading = false;
+      });
     } else {
       throw Exception('product not found');
     }
+  }
+
+  void getProductsBySearch(String searchTerm) async {
+
+    setState(() {
+      loading = true;
+      returnedProducts = [];
+    });
+
+    OpenFoodAPIConfiguration.userAgent = UserAgent(
+        name: 'caloreasy'
+    );
+
+    final ProductSearchQueryConfiguration configuration = ProductSearchQueryConfiguration(
+      parametersList: <Parameter>[
+        SearchTerms(terms: [searchTerm])
+      ],
+      version: ProductQueryVersion.v3,
+    );
+    final SearchResult result =
+        await OpenFoodAPIClient.searchProducts(user, configuration);
+    setState(() {
+      for (var i = 0; i < (result.products?.length ?? 0); i++) {
+        returnedProducts.add(result.products?[i]);
+      }
+      loading = false;
+    });
   }
 
   @override
@@ -43,23 +84,47 @@ class _AddFoodPageState extends State<AddFoodPage> {
         backgroundColor: Colors.black,
       ),
 
-      body: FutureBuilder(
-          future: getProduct('0048151623426'),
-          builder: (BuildContext context, AsyncSnapshot<Product?> snapshot) {
-            switch (snapshot.connectionState) {
-              case ConnectionState.waiting:
-                return Center(child: CircularProgressIndicator());
-              case ConnectionState.done:
-                if (snapshot.hasError) {
-                  return Text(snapshot.error.toString());
-                } else {
-                  return Text(snapshot.data?.productName
-                      ?? 'ERROR: api returned unexpected data shape');
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    MaterialButton(
+                        color: Colors.grey[800],
+                        onPressed: () => getProductByBarcode('0048151623426'),
+                        child: Text('Get Product Info by Barcode'),
+                    ),
+                    MaterialButton(
+                      color: Colors.grey[800],
+                      onPressed: () => getProductsBySearch('pringles'),
+                      child: Text('Get Product Info by Search'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Builder(
+                builder: (context) {
+                  if (loading == true) {
+                    return Center(child: CircularProgressIndicator());
+                  } else {
+                    return ListView.builder(
+                        shrinkWrap: true,
+                        physics: ScrollPhysics(),
+                        itemCount: returnedProducts.length,
+                        itemBuilder: (context, index) {
+                          return Center(child: Text(returnedProducts[index]?.productName ?? 'text'));
+                        }
+                    );
+                  }
                 }
-
-              default: return Text('ERROR: unhandled state');
-            }
-          }
+            )
+          ],
+        ),
       ),
     );
   }
