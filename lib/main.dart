@@ -1,7 +1,17 @@
 import 'package:caloreasy/pages/tracker.dart';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/adapters.dart';
 
-void main() {
+void main() async {
+
+  await Hive.initFlutter();
+
+  final _foodEntriesBox = await Hive.openBox('userFoodEntries');
+
+  // debug
+  // _foodEntriesBox.clear();
+
   runApp(const MyApp());
 }
 

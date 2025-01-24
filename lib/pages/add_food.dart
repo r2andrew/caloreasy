@@ -1,14 +1,20 @@
+import 'package:caloreasy/database/local_database.dart';
 import 'package:flutter/material.dart';
 import 'package:openfoodfacts/openfoodfacts.dart';
 
 class AddFoodPage extends StatefulWidget {
-  const AddFoodPage({super.key});
+
+  final String selectedDate;
+
+  AddFoodPage({super.key, required this.selectedDate});
 
   @override
   State<AddFoodPage> createState() => _AddFoodPageState();
 }
 
 class _AddFoodPageState extends State<AddFoodPage> {
+
+  LocalDatabase db = LocalDatabase();
 
   // OpenFoodAPI creds
   final User? user = User(
@@ -76,6 +82,10 @@ class _AddFoodPageState extends State<AddFoodPage> {
     });
   }
 
+  void saveFood (Product food) {
+    db.addFoodEntry(widget.selectedDate, food);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -117,7 +127,20 @@ class _AddFoodPageState extends State<AddFoodPage> {
                         physics: ScrollPhysics(),
                         itemCount: returnedProducts.length,
                         itemBuilder: (context, index) {
-                          return Center(child: Text(returnedProducts[index]?.productName ?? 'text'));
+
+                          // TODO: extract to component
+                          return Center(child: Row(
+                            children: [
+                              Text(returnedProducts[index]?.productName ?? 'text'),
+                              MaterialButton(
+                                  color: Colors.grey[800],
+                                  onPressed: () => {
+                                    saveFood(returnedProducts[index]!)
+                                  },
+                                  child: Text('Add'),
+                              )
+                            ],
+                          ));
                         }
                     );
                   }

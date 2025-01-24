@@ -1,0 +1,50 @@
+import 'dart:convert';
+import 'package:hive/hive.dart';
+import 'package:openfoodfacts/openfoodfacts.dart';
+
+class LocalDatabase {
+
+  // reference the hive box
+  final _foodEntriesBox = Hive.box('userFoodEntries');
+
+  // Hive can't store objects, they must be serialised into JSON string
+  // except it can barely handle that even
+  // It converts List<Map<String, dynamic>> into List<dynamic>
+  // which breaks the Product.fromJson de-serializer
+  // So this unsavoury function is necessary to fix the type
+  List<Map<String, dynamic>> readList (String date) {
+    var dynamicList = _foodEntriesBox.get(date, defaultValue: []);
+    var fixedType =
+        (jsonDecode(jsonEncode(dynamicList)) as List)
+            .cast<Map<String, dynamic>>();
+
+    return fixedType;
+  }
+
+  List<Product> getFoodEntriesForDate(String date){
+
+    List<Product> dataToReturn = [];
+
+    // decode json string back into Product
+    for (final serialisedFood in readList(date)) {
+      dataToReturn.add(Product.fromJson(serialisedFood));
+    }
+
+    return dataToReturn;
+  }
+
+  void addFoodEntry(String date, Product food){
+
+    // hive cant store objects to encode to json string
+    var serialisedFood = food.toJson();
+
+    // get currently held data
+    var serialisedFoodList = readList(date);
+
+    // add new food to list
+    serialisedFoodList.add(serialisedFood);
+
+    // update database with updated list
+    _foodEntriesBox.put(date, serialisedFoodList);
+  }
+}
