@@ -47,4 +47,12 @@ class LocalDatabase {
     // update database with updated list
     _foodEntriesBox.put(date, serialisedFoodList);
   }
+
+  void deleteFoodEntry(String date, int index) {
+    var serialisedFoodList = readList(date);
+
+    serialisedFoodList.removeAt(index);
+
+    _foodEntriesBox.put(date, serialisedFoodList);
+  }
 }

@@ -1,3 +1,4 @@
+import 'package:caloreasy/components/saved_food_tile.dart';
 import 'package:caloreasy/database/local_database.dart';
 import 'package:caloreasy/pages/add_food.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +17,12 @@ class _TrackerPageState extends State<TrackerPage> {
       .toString();
 
   LocalDatabase db = LocalDatabase();
+
+  void deleteFood (index) {
+    setState(() {
+      db.deleteFoodEntry(selectedDate, index);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,9 +51,10 @@ class _TrackerPageState extends State<TrackerPage> {
                 shrinkWrap: true,
                 itemCount: db.getFoodEntriesForDate(selectedDate).length,
                 itemBuilder: (context, index) {
-
-                  // TODO: extract to component
-                  return Text(db.getFoodEntriesForDate(selectedDate)[index].productName ?? '');
+                  return SavedFoodTile(
+                      food: db.getFoodEntriesForDate(selectedDate)[index],
+                      deleteFunction: (context) => deleteFood(index),
+                  );
                 }
             )
           ],
