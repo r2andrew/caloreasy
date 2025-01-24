@@ -1,3 +1,4 @@
+import 'package:caloreasy/components/returned_food_tile.dart';
 import 'package:caloreasy/database/local_database.dart';
 import 'package:flutter/material.dart';
 import 'package:openfoodfacts/openfoodfacts.dart';
@@ -127,20 +128,10 @@ class _AddFoodPageState extends State<AddFoodPage> {
                         physics: ScrollPhysics(),
                         itemCount: returnedProducts.length,
                         itemBuilder: (context, index) {
-
-                          // TODO: extract to component
-                          return Center(child: Row(
-                            children: [
-                              Text(returnedProducts[index]?.productName ?? 'text'),
-                              MaterialButton(
-                                  color: Colors.grey[800],
-                                  onPressed: () => {
-                                    saveFood(returnedProducts[index]!)
-                                  },
-                                  child: Text('Add'),
-                              )
-                            ],
-                          ));
+                          return ReturnedFoodTile(
+                              food: returnedProducts[index]!,
+                              saveFunction: saveFood
+                          );
                         }
                     );
                   }
