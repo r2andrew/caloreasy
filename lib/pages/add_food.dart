@@ -15,6 +15,8 @@ class AddFoodPage extends StatefulWidget {
 
 class _AddFoodPageState extends State<AddFoodPage> {
 
+  final _TextController = TextEditingController();
+
   LocalDatabase db = LocalDatabase();
 
   // OpenFoodAPI creds
@@ -98,6 +100,13 @@ class _AddFoodPageState extends State<AddFoodPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
+            TextField(
+              controller: _TextController,
+              decoration: InputDecoration(
+                border: OutlineInputBorder(),
+                hintText: 'Search'
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: SingleChildScrollView(
@@ -111,7 +120,8 @@ class _AddFoodPageState extends State<AddFoodPage> {
                     ),
                     MaterialButton(
                       color: Colors.grey[800],
-                      onPressed: () => getProductsBySearch('pringles'),
+                      // TODO: check what happens when empty search term
+                      onPressed: () => getProductsBySearch(_TextController.text ?? ''),
                       child: Text('Get Product Info by Search'),
                     ),
                   ],
