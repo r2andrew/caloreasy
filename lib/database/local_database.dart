@@ -33,10 +33,16 @@ class LocalDatabase {
     return dataToReturn;
   }
 
-  void addFoodEntry(String date, Product food){
+  void addFoodEntry(String date, Product food, int grams){
 
     // hive cant store objects to encode to json string
     var serialisedFood = food.toJson();
+
+    // serialisedFood will later be parsed back into a Product object
+    // in the fromJson parse, only fields of Product are valid
+    // here i high-jack this suitably named field of Product
+    // to store the user's input grams
+    serialisedFood['quantity'] = grams.toString();
 
     // get currently held data
     var serialisedFoodList = readList(date);

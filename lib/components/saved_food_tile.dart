@@ -38,7 +38,9 @@ class SavedFoodTile extends StatelessWidget {
             children: [
               Text("Product Name:  ${food.productName!}" +
                   '\nCalories per 100g : '
-                      '${food.nutriments!.getComputedKJ(PerSize.oneHundredGrams)}'
+                      '${food.nutriments!.getComputedKJ(PerSize.oneHundredGrams)}' +
+                  '\nGrams: '
+                      '${food.quantity}'
               )
             ],
           ),

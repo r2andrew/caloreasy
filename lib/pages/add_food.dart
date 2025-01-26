@@ -74,6 +74,10 @@ class _AddFoodPageState extends State<AddFoodPage> {
         SearchTerms(terms: [searchTerm])
       ],
       version: ProductQueryVersion.v3,
+      fields: [
+        ProductField.NAME,
+        ProductField.NUTRIMENTS
+      ]
     );
     final SearchResult result =
         await OpenFoodAPIClient.searchProducts(user, configuration);
@@ -85,8 +89,8 @@ class _AddFoodPageState extends State<AddFoodPage> {
     });
   }
 
-  void saveFood (Product food) {
-    db.addFoodEntry(widget.selectedDate, food);
+  void saveFood (Product food, int grams) {
+    db.addFoodEntry(widget.selectedDate, food, grams);
   }
 
   @override
