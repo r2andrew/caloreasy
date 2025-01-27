@@ -41,6 +41,9 @@ class SavedFoodTile extends StatelessWidget {
                       '${food.nutriments!.getComputedKJ(PerSize.oneHundredGrams)}' +
                   '\nGrams: '
                       '${food.quantity}'
+                  '\nCalories '
+                      '${food.nutriments!.getComputedKJ(PerSize.oneHundredGrams)! *
+                        (int.parse(food.quantity!) / 100)}'
               )
             ],
           ),

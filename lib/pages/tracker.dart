@@ -12,15 +12,24 @@ class TrackerPage extends StatefulWidget {
 
 class _TrackerPageState extends State<TrackerPage> {
 
-  String selectedDate = DateTime.now()
-      .copyWith(hour: 0, minute: 0, second: 0, millisecond: 0, microsecond: 0)
-      .toString();
+  DateTime selectedDate = DateTime.now()
+      .copyWith(hour: 0, minute: 0, second: 0, millisecond: 0, microsecond: 0);
 
   LocalDatabase db = LocalDatabase();
 
+  void changeSelectedDate(String direction) {
+    setState(() {
+      if (direction == "forward") {
+        selectedDate = selectedDate.add(Duration(days: 1));
+      } else {
+        selectedDate = selectedDate.subtract(Duration(days: 1));
+      }
+    });
+  }
+
   void deleteFood (index) {
     setState(() {
-      db.deleteFoodEntry(selectedDate, index);
+      db.deleteFoodEntry(selectedDate.toString(), index);
     });
   }
 
@@ -37,7 +46,7 @@ class _TrackerPageState extends State<TrackerPage> {
           backgroundColor: Colors.white,
           onPressed: () => {
             Navigator.push(context, MaterialPageRoute(
-                builder: (context) => AddFoodPage(selectedDate: selectedDate)
+                builder: (context) => AddFoodPage(selectedDate: selectedDate.toString())
             // rebuild widget on return from adding
             )).then((_) => setState(() {}))
           },
@@ -47,12 +56,33 @@ class _TrackerPageState extends State<TrackerPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
+
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  MaterialButton(
+                    color: Colors.grey[800],
+                    onPressed: () => changeSelectedDate("back"),
+                    child: Text('Back'),
+                  ),
+                  Text('${selectedDate.day}-${selectedDate.month}-${selectedDate.year}'),
+                  MaterialButton(
+                    color: Colors.grey[800],
+                    onPressed: () => changeSelectedDate("forward"),
+                    child: Text('Forward'),
+                  )
+                ],
+              ),
+            ),
+
             ListView.builder(
                 shrinkWrap: true,
-                itemCount: db.getFoodEntriesForDate(selectedDate).length,
+                itemCount: db.getFoodEntriesForDate(selectedDate.toString()).length,
                 itemBuilder: (context, index) {
                   return SavedFoodTile(
-                      food: db.getFoodEntriesForDate(selectedDate)[index],
+                      food: db.getFoodEntriesForDate(selectedDate.toString())[index],
                       deleteFunction: (context) => deleteFood(index),
                   );
                 }
