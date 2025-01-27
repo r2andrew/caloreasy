@@ -22,16 +22,25 @@ class LocalDatabase {
     return fixedType;
   }
 
-  List<Product> getFoodEntriesForDate(String date){
+  Map<String, List<Product>> getFoodEntriesForDate(String date) {
 
-    List<Product> dataToReturn = [];
+    List<Product> foods = [];
 
     // decode json string back into Product
     for (final serialisedFood in readList(date)) {
-      dataToReturn.add(Product.fromJson(serialisedFood));
+      foods.add(Product.fromJson(serialisedFood));
     }
 
-    return dataToReturn;
+    // group by time
+    Map<String, List<Product>> grouped = {};
+
+    for (var food in foods) {
+      if (grouped[food.categories] == null) {
+        grouped[food.categories!] = [];
+      }
+      grouped[food.categories]!.add(food);
+    }
+    return grouped;
   }
 
   void addFoodEntry(String date, Product food, int grams, String time){

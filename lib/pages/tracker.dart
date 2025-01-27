@@ -1,3 +1,4 @@
+import 'package:caloreasy/components/grouped_foods.dart';
 import 'package:caloreasy/components/saved_food_tile.dart';
 import 'package:caloreasy/database/local_database.dart';
 import 'package:caloreasy/pages/add_food.dart';
@@ -15,8 +16,6 @@ class _TrackerPageState extends State<TrackerPage> {
   DateTime selectedDate = DateTime.now()
       .copyWith(hour: 0, minute: 0, second: 0, millisecond: 0, microsecond: 0);
 
-  LocalDatabase db = LocalDatabase();
-
   void changeSelectedDate(String direction) {
     setState(() {
       if (direction == "forward") {
@@ -24,12 +23,6 @@ class _TrackerPageState extends State<TrackerPage> {
       } else {
         selectedDate = selectedDate.subtract(Duration(days: 1));
       }
-    });
-  }
-
-  void deleteFood (id) {
-    setState(() {
-      db.deleteFoodEntry(selectedDate.toString(), id);
     });
   }
 
@@ -76,18 +69,9 @@ class _TrackerPageState extends State<TrackerPage> {
                 ],
               ),
             ),
-
-            ListView.builder(
-                shrinkWrap: true,
-                itemCount: db.getFoodEntriesForDate(selectedDate.toString()).length,
-                itemBuilder: (context, index) {
-                  var food = db.getFoodEntriesForDate(selectedDate.toString())[index];
-                  return SavedFoodTile(
-                      food: food,
-                      deleteFunction: (context) => deleteFood(food.stores),
-                  );
-                }
-            )
+            GroupedFoods(time: 'Morning', date: selectedDate),
+            GroupedFoods(time: 'Afternoon', date: selectedDate),
+            GroupedFoods(time: 'Evening', date: selectedDate)
           ],
         ),
       ),
