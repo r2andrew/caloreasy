@@ -6,11 +6,13 @@ class ReturnedFoodTile extends StatefulWidget {
 
   final Product food;
   final Function saveFunction;
+  final String time;
 
   const ReturnedFoodTile({
     super.key,
     required this.food,
-    required this.saveFunction
+    required this.saveFunction,
+    required this.time
   });
 
   @override
@@ -21,7 +23,6 @@ class _ReturnedFoodTileState extends State<ReturnedFoodTile> {
 
   final _TextController = TextEditingController();
 
-  // TODO: change this to a stateful widget
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -68,7 +69,11 @@ class _ReturnedFoodTileState extends State<ReturnedFoodTile> {
                   MaterialButton(
                     color: Colors.grey[800],
                     onPressed: () => {
-                      widget.saveFunction(widget.food, int.parse(_TextController.text))
+                      widget.saveFunction(
+                          widget.food,
+                          int.parse(_TextController.text),
+                          widget.time
+                      )
                     },
                     child: Text('Add'),
                   ),

@@ -17,6 +17,8 @@ class _AddFoodPageState extends State<AddFoodPage> {
 
   final _TextController = TextEditingController();
 
+  String selectedTime = 'Morning';
+
   LocalDatabase db = LocalDatabase();
 
   // OpenFoodAPI creds
@@ -89,8 +91,8 @@ class _AddFoodPageState extends State<AddFoodPage> {
     });
   }
 
-  void saveFood (Product food, int grams) {
-    db.addFoodEntry(widget.selectedDate, food, grams);
+  void saveFood (Product food, int grams, String time) {
+    db.addFoodEntry(widget.selectedDate, food, grams, time);
   }
 
   @override
@@ -111,6 +113,29 @@ class _AddFoodPageState extends State<AddFoodPage> {
                 hintText: 'Search'
               ),
             ),
+            DropdownButton(
+                hint: Text('Morning'),
+                value: 'Morning',
+                items: [
+                  DropdownMenuItem(
+                      value: 'Morning',
+                      child: Text('Morning'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'Afternoon',
+                    child: Text('Afternoon'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'Evening',
+                    child: Text('Evening'),
+                  )
+                ],
+                onChanged: (time) {
+                  setState(() {
+                    selectedTime = time as String;
+                  });
+                }
+            ),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: SingleChildScrollView(
@@ -124,7 +149,6 @@ class _AddFoodPageState extends State<AddFoodPage> {
                     ),
                     MaterialButton(
                       color: Colors.grey[800],
-                      // TODO: check what happens when empty search term
                       onPressed: () => getProductsBySearch(_TextController.text ?? ''),
                       child: Text('Get Product Info by Search'),
                     ),
@@ -144,7 +168,8 @@ class _AddFoodPageState extends State<AddFoodPage> {
                         itemBuilder: (context, index) {
                           return ReturnedFoodTile(
                               food: returnedProducts[index]!,
-                              saveFunction: saveFood
+                              saveFunction: saveFood,
+                              time: selectedTime,
                           );
                         }
                     );

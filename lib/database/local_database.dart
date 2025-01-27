@@ -34,7 +34,7 @@ class LocalDatabase {
     return dataToReturn;
   }
 
-  void addFoodEntry(String date, Product food, int grams){
+  void addFoodEntry(String date, Product food, int grams, String time){
 
     // hive cant store objects to encode to json string
     var serialisedFood = food.toJson();
@@ -50,6 +50,9 @@ class LocalDatabase {
     // relative position is inadequate as that is lost upon sorting/grouping
     // via time
     serialisedFood['stores'] = generateId();
+
+    // i am really running out of suitable nomers
+    serialisedFood['categories'] = time;
 
     // get currently held data
     var serialisedFoodList = readList(date);
