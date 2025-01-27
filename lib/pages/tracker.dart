@@ -27,9 +27,9 @@ class _TrackerPageState extends State<TrackerPage> {
     });
   }
 
-  void deleteFood (index) {
+  void deleteFood (id) {
     setState(() {
-      db.deleteFoodEntry(selectedDate.toString(), index);
+      db.deleteFoodEntry(selectedDate.toString(), id);
     });
   }
 
@@ -81,9 +81,10 @@ class _TrackerPageState extends State<TrackerPage> {
                 shrinkWrap: true,
                 itemCount: db.getFoodEntriesForDate(selectedDate.toString()).length,
                 itemBuilder: (context, index) {
+                  var food = db.getFoodEntriesForDate(selectedDate.toString())[index];
                   return SavedFoodTile(
-                      food: db.getFoodEntriesForDate(selectedDate.toString())[index],
-                      deleteFunction: (context) => deleteFood(index),
+                      food: food,
+                      deleteFunction: (context) => deleteFood(food.stores),
                   );
                 }
             )

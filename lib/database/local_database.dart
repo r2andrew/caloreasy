@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:hive/hive.dart';
 import 'package:openfoodfacts/openfoodfacts.dart';
 
@@ -44,6 +45,12 @@ class LocalDatabase {
     // to store the user's input grams
     serialisedFood['quantity'] = grams.toString();
 
+    // similar story with this field used to store an id that identifies
+    // this entry within the local database.
+    // relative position is inadequate as that is lost upon sorting/grouping
+    // via time
+    serialisedFood['stores'] = generateId();
+
     // get currently held data
     var serialisedFoodList = readList(date);
 
@@ -54,11 +61,23 @@ class LocalDatabase {
     _foodEntriesBox.put(date, serialisedFoodList);
   }
 
-  void deleteFoodEntry(String date, int index) {
+  void deleteFoodEntry(String date, String id) {
+
     var serialisedFoodList = readList(date);
 
-    serialisedFoodList.removeAt(index);
+    for (int index = 0; index < serialisedFoodList.length; index++) {
+      if (serialisedFoodList[index]['stores'] == id) {
+        serialisedFoodList.removeAt(index);
+        break;
+      }
+    }
 
     _foodEntriesBox.put(date, serialisedFoodList);
   }
+
+  final _chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+  final Random _rnd = Random();
+
+  String generateId() => String.fromCharCodes(Iterable.generate(
+      24, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
 }
