@@ -6,11 +6,13 @@ class GroupedFoods extends StatefulWidget {
 
   final String time;
   final DateTime date;
+  final Function deleteFunction;
 
   const GroupedFoods({
     super.key,
     required this.time,
-    required this.date
+    required this.date,
+    required this.deleteFunction
   });
 
   @override
@@ -21,9 +23,11 @@ class _GroupedFoodsState extends State<GroupedFoods> {
 
   final LocalDatabase db = LocalDatabase();
 
+  // deletion needs to trigger a rebuild on tracker page therefore delete function
+  // needs to reside in tracker page. however this widget must also be rebuilt on delete
   void deleteFood (id) {
     setState(() {
-      db.deleteFoodEntry(widget.date.toString(), id);
+      widget.deleteFunction(id);
     });
   }
 

@@ -8,6 +8,8 @@ void main() async {
   await Hive.initFlutter();
 
   final _foodEntriesBox = await Hive.openBox('userFoodEntries');
+  var _preferencesBox = await Hive.openBox('userPreferences');
+
 
   // debug
   // _foodEntriesBox.clear();

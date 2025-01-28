@@ -2,7 +2,9 @@ import 'package:caloreasy/components/grouped_foods.dart';
 import 'package:caloreasy/components/saved_food_tile.dart';
 import 'package:caloreasy/database/local_database.dart';
 import 'package:caloreasy/pages/add_food.dart';
+import 'package:caloreasy/pages/preferences.dart';
 import 'package:flutter/material.dart';
+import 'package:openfoodfacts/openfoodfacts.dart';
 
 class TrackerPage extends StatefulWidget {
   const TrackerPage({super.key});
@@ -16,6 +18,48 @@ class _TrackerPageState extends State<TrackerPage> {
   DateTime selectedDate = DateTime.now()
       .copyWith(hour: 0, minute: 0, second: 0, millisecond: 0, microsecond: 0);
 
+  LocalDatabase db = LocalDatabase();
+
+  double caloriesConsumedToday = 0;
+
+  @override
+  void initState() {
+    calcCaloriesConsumedToday();
+    super.initState();
+  }
+
+  void calcCaloriesConsumedToday() {
+
+    double caloriesConsumed = 0;
+
+    var times = ['Morning', 'Afternoon', 'Evening'];
+
+    for (var time in times) {
+      var foodList = db.getFoodEntriesForDate(selectedDate.toString())[time] ?? [];
+      for (var food in foodList) {
+        caloriesConsumed += food.nutriments!.getComputedKJ(PerSize.oneHundredGrams)! *
+            (int.parse(food.quantity!) / 100);
+      }
+    }
+    setState(() {
+      caloriesConsumedToday = caloriesConsumed;
+    });
+  }
+
+  List calcCalorieDelta() {
+    double percentageFilled =
+    (caloriesConsumedToday / (db.getPreferences('calories') * 10000));
+
+    if (percentageFilled.isInfinite) {
+      percentageFilled = 1;
+    }
+
+    if (percentageFilled < 0.5) {
+      return [percentageFilled, Colors.green];
+    }
+    return [percentageFilled, Colors.red];
+  }
+
   void changeSelectedDate(String direction) {
     setState(() {
       if (direction == "forward") {
@@ -23,6 +67,14 @@ class _TrackerPageState extends State<TrackerPage> {
       } else {
         selectedDate = selectedDate.subtract(Duration(days: 1));
       }
+      calcCaloriesConsumedToday();
+    });
+  }
+
+  void deleteFood (id) {
+    setState(() {
+      db.deleteFoodEntry(selectedDate.toString(), id);
+      calcCaloriesConsumedToday();
     });
   }
 
@@ -33,22 +85,72 @@ class _TrackerPageState extends State<TrackerPage> {
         title: Center(child: Text('Tracker')),
         backgroundColor: Colors.black,
       ),
-      
-      // tap to open add food page
-      floatingActionButton: FloatingActionButton(
-          backgroundColor: Colors.white,
-          onPressed: () => {
-            Navigator.push(context, MaterialPageRoute(
-                builder: (context) => AddFoodPage(selectedDate: selectedDate.toString())
-            // rebuild widget on return from adding
-            )).then((_) => setState(() {}))
-          },
-          child: Icon(Icons.add, color: Colors.black,),
+
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+
+              FloatingActionButton(
+                heroTag: 'Preferences',
+                backgroundColor: Colors.white,
+                onPressed: () => {
+                  Navigator.push(context, MaterialPageRoute(
+                      builder: (context) => PreferencesPage()
+                    // rebuild widget on return from adding
+                  )).then((_) => setState(() {}))
+                },
+                child: Icon(Icons.edit, color: Colors.black,),
+              ),
+
+              FloatingActionButton(
+                heroTag: 'Add',
+                backgroundColor: Colors.white,
+                onPressed: () => {
+                  Navigator.push(context, MaterialPageRoute(
+                      builder: (context) => AddFoodPage(selectedDate: selectedDate.toString())
+                    // rebuild widget on return from adding
+                  )).then((_) => setState(() {calcCaloriesConsumedToday();}))
+                },
+                child: Icon(Icons.add, color: Colors.black,),
+              )
+
+            ],
+          ),
       ),
 
       body: SingleChildScrollView(
         child: Column(
           children: [
+
+            Container(
+              clipBehavior: Clip.hardEdge,
+              margin: const EdgeInsets.symmetric(horizontal: 20.0),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20.0),
+              ),
+              height: 80.0,
+              width: double.infinity,
+              child: Stack(
+                alignment: Alignment.centerLeft,
+                children: [
+                  Positioned.fill(
+                    child: LinearProgressIndicator(
+                      //Here you pass the percentage
+                      value: calcCalorieDelta()[0],
+                      color: calcCalorieDelta()[1],
+                      backgroundColor: Colors.blue.withAlpha(50),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 10.0),
+                    child: Text('${caloriesConsumedToday} / ${db.getPreferences('calories') * 10000} Calories'),
+                  )
+                ],
+              ),
+            ),
 
             Padding(
               padding: const EdgeInsets.all(8.0),
@@ -69,9 +171,14 @@ class _TrackerPageState extends State<TrackerPage> {
                 ],
               ),
             ),
-            GroupedFoods(time: 'Morning', date: selectedDate),
-            GroupedFoods(time: 'Afternoon', date: selectedDate),
-            GroupedFoods(time: 'Evening', date: selectedDate)
+
+            GroupedFoods(time: 'Morning',
+                date: selectedDate, deleteFunction: deleteFood),
+            GroupedFoods(time: 'Afternoon',
+                date: selectedDate, deleteFunction: deleteFood,),
+            GroupedFoods(time: 'Evening',
+                date: selectedDate, deleteFunction: deleteFood,)
+
           ],
         ),
       ),

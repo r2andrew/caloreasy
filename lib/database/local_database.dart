@@ -7,6 +7,11 @@ class LocalDatabase {
 
   // reference the hive box
   final _foodEntriesBox = Hive.box('userFoodEntries');
+  final _preferencesBox = Hive.box('userPreferences');
+
+  /*
+  * FOOD METHODS
+  * */
 
   // Hive can't store objects, they must be serialised into JSON string
   // except it can barely handle that even
@@ -92,4 +97,26 @@ class LocalDatabase {
 
   String generateId() => String.fromCharCodes(Iterable.generate(
       24, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
+
+  /*
+  * PREFERENCES METHODS
+  * */
+
+  double getPreferences(String preference) {
+    switch(preference) {
+      case 'calories':
+        return _preferencesBox.get('DESIRED_CALORIES') ?? 0;
+      // TODO: add other nutrition info
+      default:
+        return 0;
+    }
+  }
+
+  void updatePreferences(String preference, double value) {
+    switch(preference) {
+      case 'calories':
+        _preferencesBox.put('DESIRED_CALORIES', value);
+    // TODO: add other nutrition info
+    }
+  }
 }
