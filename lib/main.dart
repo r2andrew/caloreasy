@@ -13,6 +13,7 @@ void main() async {
 
   // debug
   // _foodEntriesBox.clear();
+  // _preferencesBox.clear();
 
   runApp(const MyApp());
 }

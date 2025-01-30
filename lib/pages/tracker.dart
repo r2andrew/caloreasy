@@ -20,7 +20,7 @@ class _TrackerPageState extends State<TrackerPage> {
 
   LocalDatabase db = LocalDatabase();
 
-  double caloriesConsumedToday = 0;
+  int caloriesConsumedToday = 0;
 
   @override
   void initState() {
@@ -30,15 +30,15 @@ class _TrackerPageState extends State<TrackerPage> {
 
   void calcCaloriesConsumedToday() {
 
-    double caloriesConsumed = 0;
+    int caloriesConsumed = 0;
 
     var times = ['Morning', 'Afternoon', 'Evening'];
 
     for (var time in times) {
       var foodList = db.getFoodEntriesForDate(selectedDate.toString())[time] ?? [];
       for (var food in foodList) {
-        caloriesConsumed += food.nutriments!.getComputedKJ(PerSize.oneHundredGrams)! *
-            (int.parse(food.quantity!) / 100);
+        caloriesConsumed += (food.nutriments!.getComputedKJ(PerSize.oneHundredGrams)! *
+            (int.parse(food.quantity!) / 100)).toInt();
       }
     }
     setState(() {
@@ -48,10 +48,10 @@ class _TrackerPageState extends State<TrackerPage> {
 
   List calcCalorieDelta() {
     double percentageFilled =
-    (caloriesConsumedToday / (db.getPreferences('calories') * 10000));
+    (caloriesConsumedToday / (db.getPreferences('calories')));
 
-    if (percentageFilled.isInfinite) {
-      percentageFilled = 1;
+    if (percentageFilled.isInfinite || percentageFilled.isNaN) {
+      percentageFilled = 0;
     }
 
     if (percentageFilled < 0.5) {
@@ -146,7 +146,7 @@ class _TrackerPageState extends State<TrackerPage> {
                   ),
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 10.0),
-                    child: Text('${caloriesConsumedToday} / ${db.getPreferences('calories') * 10000} Calories'),
+                    child: Text('${caloriesConsumedToday} / ${db.getPreferences('calories')} Calories'),
                   )
                 ],
               ),

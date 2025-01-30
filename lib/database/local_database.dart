@@ -102,7 +102,7 @@ class LocalDatabase {
   * PREFERENCES METHODS
   * */
 
-  double getPreferences(String preference) {
+  int getPreferences(String preference) {
     switch(preference) {
       case 'calories':
         return _preferencesBox.get('DESIRED_CALORIES') ?? 0;
@@ -112,7 +112,7 @@ class LocalDatabase {
     }
   }
 
-  void updatePreferences(String preference, double value) {
+  void updatePreferences(String preference, int value) {
     switch(preference) {
       case 'calories':
         _preferencesBox.put('DESIRED_CALORIES', value);

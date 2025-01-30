@@ -12,6 +12,8 @@ class _PreferencesPageState extends State<PreferencesPage> {
 
   LocalDatabase db = LocalDatabase();
 
+  final _TextController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -21,14 +23,21 @@ class _PreferencesPageState extends State<PreferencesPage> {
       ),
       body: Column(
         children: [
-          Slider(
-              value: db.getPreferences('calories'),
-              divisions: 10,
-              onChanged: (double value) {
-                setState(() {
-                  db.updatePreferences('calories', value);
-                });
-              }
+
+          TextField(
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              border: OutlineInputBorder(),
+              hintText: 'Calories'
+            ),
+            controller: _TextController,
+          ),
+          MaterialButton(
+              color: Colors.white,
+              textColor: Colors.black,
+              onPressed: () =>
+                  db.updatePreferences('calories', int.parse(_TextController.text)),
+              child: Text('Save'),
           )
         ],
       ),
