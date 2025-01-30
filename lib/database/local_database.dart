@@ -106,7 +106,12 @@ class LocalDatabase {
     switch(preference) {
       case 'calories':
         return _preferencesBox.get('DESIRED_CALORIES') ?? 0;
-      // TODO: add other nutrition info
+      case 'protein':
+        return _preferencesBox.get('DESIRED_PROTEIN') ?? 0;
+      case 'carb':
+        return _preferencesBox.get('DESIRED_CARB') ?? 0;
+      case 'fat':
+        return _preferencesBox.get('DESIRED_FAT') ?? 0;
       default:
         return 0;
     }
@@ -116,7 +121,12 @@ class LocalDatabase {
     switch(preference) {
       case 'calories':
         _preferencesBox.put('DESIRED_CALORIES', value);
-    // TODO: add other nutrition info
+      case 'protein':
+        _preferencesBox.put('DESIRED_PROTEIN', value);
+      case 'carb':
+        _preferencesBox.put('DESIRED_CARB', value);
+      case 'fat':
+        _preferencesBox.put('DESIRED_FAT', value);
     }
   }
 }

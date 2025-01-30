@@ -1,5 +1,4 @@
 import 'package:caloreasy/components/grouped_foods.dart';
-import 'package:caloreasy/components/saved_food_tile.dart';
 import 'package:caloreasy/database/local_database.dart';
 import 'package:caloreasy/pages/add_food.dart';
 import 'package:caloreasy/pages/preferences.dart';
@@ -21,43 +20,62 @@ class _TrackerPageState extends State<TrackerPage> {
   LocalDatabase db = LocalDatabase();
 
   int caloriesConsumedToday = 0;
+  int proteinConsumedToday = 0;
+  int carbsConsumedToday = 0;
+  int fatConsumedToday = 0;
 
   @override
   void initState() {
-    calcCaloriesConsumedToday();
+    calcNutrientsConsumedToday();
     super.initState();
   }
 
-  void calcCaloriesConsumedToday() {
+  void calcNutrientsConsumedToday() {
 
     int caloriesConsumed = 0;
+    int proteinConsumed = 0;
+    int carbsConsumed = 0;
+    int fatConsumed = 0;
 
     var times = ['Morning', 'Afternoon', 'Evening'];
 
     for (var time in times) {
       var foodList = db.getFoodEntriesForDate(selectedDate.toString())[time] ?? [];
       for (var food in foodList) {
-        caloriesConsumed += (food.nutriments!.getComputedKJ(PerSize.oneHundredGrams)! *
+        caloriesConsumed +=
+            (food.nutriments!.getComputedKJ(PerSize.oneHundredGrams)! *
             (int.parse(food.quantity!) / 100)).toInt();
+        proteinConsumed +=
+            (food.nutriments!.getValue(Nutrient.proteins, PerSize.oneHundredGrams)! *
+            (int.parse(food.quantity!) / 100)).toInt();
+        carbsConsumed +=
+            (food.nutriments!.getValue(Nutrient.carbohydrates, PerSize.oneHundredGrams)! *
+                (int.parse(food.quantity!) / 100)).toInt();
+        fatConsumed +=
+            (food.nutriments!.getValue(Nutrient.fat, PerSize.oneHundredGrams)! *
+                (int.parse(food.quantity!) / 100)).toInt();
       }
     }
     setState(() {
       caloriesConsumedToday = caloriesConsumed;
+      proteinConsumedToday = proteinConsumed;
+      carbsConsumedToday = carbsConsumed;
+      fatConsumedToday = fatConsumed;
     });
   }
 
-  List calcCalorieDelta() {
+  List calcNutrientDelta(int nutrientConsumedToday, String nutrient) {
     double percentageFilled =
-    (caloriesConsumedToday / (db.getPreferences('calories')));
+    (nutrientConsumedToday / (db.getPreferences(nutrient)));
 
     if (percentageFilled.isInfinite || percentageFilled.isNaN) {
       percentageFilled = 0;
     }
 
-    if (percentageFilled < 0.5) {
-      return [percentageFilled, Colors.green];
+    if (percentageFilled < 0.8 || percentageFilled > 1.1) {
+      return [percentageFilled, Colors.red];
     }
-    return [percentageFilled, Colors.red];
+    return [percentageFilled, Colors.green];
   }
 
   void changeSelectedDate(String direction) {
@@ -67,14 +85,14 @@ class _TrackerPageState extends State<TrackerPage> {
       } else {
         selectedDate = selectedDate.subtract(Duration(days: 1));
       }
-      calcCaloriesConsumedToday();
+      calcNutrientsConsumedToday();
     });
   }
 
   void deleteFood (id) {
     setState(() {
       db.deleteFoodEntry(selectedDate.toString(), id);
-      calcCaloriesConsumedToday();
+      calcNutrientsConsumedToday();
     });
   }
 
@@ -112,7 +130,7 @@ class _TrackerPageState extends State<TrackerPage> {
                   Navigator.push(context, MaterialPageRoute(
                       builder: (context) => AddFoodPage(selectedDate: selectedDate.toString())
                     // rebuild widget on return from adding
-                  )).then((_) => setState(() {calcCaloriesConsumedToday();}))
+                  )).then((_) => setState(() {calcNutrientsConsumedToday();}))
                 },
                 child: Icon(Icons.add, color: Colors.black,),
               )
@@ -139,14 +157,62 @@ class _TrackerPageState extends State<TrackerPage> {
                   Positioned.fill(
                     child: LinearProgressIndicator(
                       //Here you pass the percentage
-                      value: calcCalorieDelta()[0],
-                      color: calcCalorieDelta()[1],
+                      value: calcNutrientDelta(caloriesConsumedToday, 'calories')[0],
+                      color: calcNutrientDelta(caloriesConsumedToday, 'calories')[1],
                       backgroundColor: Colors.blue.withAlpha(50),
                     ),
                   ),
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 10.0),
                     child: Text('${caloriesConsumedToday} / ${db.getPreferences('calories')} Calories'),
+                  )
+                ],
+              ),
+            ),
+
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+
+                  SizedBox(
+                    height: 30,
+                    width: 30,
+                    child: CircularProgressIndicator(
+                      value: calcNutrientDelta(proteinConsumedToday, 'protein')[0],
+                      color: calcNutrientDelta(proteinConsumedToday, 'protein')[1],
+                      backgroundColor: Colors.grey[800],
+                    ),
+                  ),
+                  Text('P: ${proteinConsumedToday} /'
+                      '${db.getPreferences('protein').toString()}'
+                  ),
+
+                  SizedBox(
+                    height: 30,
+                    width: 30,
+                    child: CircularProgressIndicator(
+                      value: calcNutrientDelta(carbsConsumedToday, 'carb')[0],
+                      color: calcNutrientDelta(carbsConsumedToday, 'carb')[1],
+                      backgroundColor: Colors.grey[800],
+                    ),
+                  ),
+                  Text('C: ${carbsConsumedToday} /'
+                      '${db.getPreferences('carb').toString()}'
+                  ),
+
+                  SizedBox(
+                    height: 30,
+                    width: 30,
+                    child: CircularProgressIndicator(
+                      value: calcNutrientDelta(fatConsumedToday, 'fat')[0],
+                      color: calcNutrientDelta(fatConsumedToday, 'fat')[1],
+                      backgroundColor: Colors.grey[800],
+                    ),
+                  ),
+                  Text('F: ${fatConsumedToday} /'
+                      '${db.getPreferences('fat').toString()}'
                   )
                 ],
               ),

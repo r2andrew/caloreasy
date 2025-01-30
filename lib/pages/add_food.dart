@@ -114,8 +114,8 @@ class _AddFoodPageState extends State<AddFoodPage> {
               ),
             ),
             DropdownButton(
-                hint: Text('Morning'),
-                value: 'Morning',
+                hint: Text(selectedTime),
+                value: selectedTime,
                 items: [
                   DropdownMenuItem(
                       value: 'Morning',
