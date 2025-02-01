@@ -5,7 +5,13 @@ import 'package:flutter/services.dart';
 import '../components/tdee_dialog.dart';
 
 class PreferencesPage extends StatefulWidget {
-  const PreferencesPage({super.key});
+
+  String selectedDate;
+
+  PreferencesPage({
+    super.key,
+    required this.selectedDate
+  });
 
   @override
   State<PreferencesPage> createState() => _PreferencesPageState();
@@ -17,15 +23,18 @@ class _PreferencesPageState extends State<PreferencesPage> {
 
   final _caloriesController = TextEditingController();
   final _proteinController = TextEditingController();
-  final _carbController = TextEditingController();
+  final _carbsController = TextEditingController();
   final _fatController = TextEditingController();
 
   @override
   void initState() {
-    _caloriesController.text = db.getPreferences('calories').toString();
-    _proteinController.text = db.getPreferences('protein').toString();
-    _carbController.text = db.getPreferences('carb').toString();
-    _fatController.text = db.getPreferences('fat').toString();
+
+    var preferences = db.getPreferences(widget.selectedDate);
+
+    _caloriesController.text = preferences['calories'].toString();
+    _proteinController.text = preferences['protein'].toString();
+    _carbsController.text = preferences['carbs'].toString();
+    _fatController.text = preferences['fat'].toString();
 
     super.initState();
   }
@@ -59,7 +68,7 @@ class _PreferencesPageState extends State<PreferencesPage> {
     setState(() {
       _caloriesController.text = TDEE.toInt().toString();
       _proteinController.text = ((TDEE * 0.4) ~/ 4).toString();
-      _carbController.text = ((TDEE * 0.4) ~/ 4).toString();
+      _carbsController.text = ((TDEE * 0.4) ~/ 4).toString();
       _fatController.text = ((TDEE * 0.2) ~/ 9).toString();
     });
   }
@@ -67,12 +76,16 @@ class _PreferencesPageState extends State<PreferencesPage> {
   void submit() {
     if (_caloriesController.text.isNotEmpty &&
         _proteinController.text.isNotEmpty &&
-        _carbController.text.isNotEmpty &&
+        _carbsController.text.isNotEmpty &&
         _fatController.text.isNotEmpty) {
-          db.updatePreferences('calories', int.parse(_caloriesController.text));
-          db.updatePreferences('protein', int.parse(_proteinController.text));
-          db.updatePreferences('carb', int.parse(_carbController.text));
-          db.updatePreferences('fat', int.parse(_fatController.text));
+      
+          Map updatedPreferences = {
+            'calories': int.parse(_caloriesController.text),
+            'protein': int.parse(_proteinController.text),
+            'carbs': int.parse(_carbsController.text),
+            'fat': int.parse(_fatController.text),
+          };
+          db.updatePreferences(widget.selectedDate, updatedPreferences);
 
           Navigator.of(context).pop();
         }
@@ -129,7 +142,7 @@ class _PreferencesPageState extends State<PreferencesPage> {
                 border: OutlineInputBorder(),
                 hintText: 'Carbs in g'
             ),
-            controller: _carbController,
+            controller: _carbsController,
           ),
 
           Text('Fat'),

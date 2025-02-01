@@ -6,7 +6,10 @@ import 'package:openfoodfacts/openfoodfacts.dart';
 class LocalDatabase {
 
   // reference the hive box
+
+  // List<Map<String, dynamic>>
   final _foodEntriesBox = Hive.box('userFoodEntries');
+  // Map
   final _preferencesBox = Hive.box('userPreferences');
 
   /*
@@ -102,31 +105,49 @@ class LocalDatabase {
   * PREFERENCES METHODS
   * */
 
-  int getPreferences(String preference) {
-    switch(preference) {
-      case 'calories':
-        return _preferencesBox.get('DESIRED_CALORIES') ?? 0;
-      case 'protein':
-        return _preferencesBox.get('DESIRED_PROTEIN') ?? 0;
-      case 'carb':
-        return _preferencesBox.get('DESIRED_CARB') ?? 0;
-      case 'fat':
-        return _preferencesBox.get('DESIRED_FAT') ?? 0;
-      default:
-        return 0;
+  Map getPreferences(String date) {
+    
+    // sort dates
+    List keys = (_preferencesBox.keys.toList());
+    keys.sort((a,b) {
+       return DateTime.parse(a).compareTo(DateTime.parse(b));
+    });
+
+    // find the preferences record behind the selected date
+    // (if selected date is before any preferences records use empty string
+    // which will default to empty map as below)
+    var nearestDateBelow = '';
+    for (final keysDate in keys) {
+      if (DateTime.parse(keysDate).isBefore(DateTime.parse(date))) {
+        nearestDateBelow = keysDate;
+        break;
+      }
     }
+
+    // get preferences for mostRecentDate, if no preferences use 0
+    Map preferencesForMostRecentDate = _preferencesBox.get(nearestDateBelow,
+      defaultValue: {
+        'calories': 0,
+        'protein': 0,
+        'carbs': 0,
+        'fat': 0
+      }
+    );
+
+    // get preferences for selected date, if none there, (i.e. if in future)
+    // use the values from most recent date
+    Map preferencesForDate = _preferencesBox.get(date,
+        defaultValue: preferencesForMostRecentDate
+    );
+
+    return preferencesForDate;
   }
 
-  void updatePreferences(String preference, int value) {
-    switch(preference) {
-      case 'calories':
-        _preferencesBox.put('DESIRED_CALORIES', value);
-      case 'protein':
-        _preferencesBox.put('DESIRED_PROTEIN', value);
-      case 'carb':
-        _preferencesBox.put('DESIRED_CARB', value);
-      case 'fat':
-        _preferencesBox.put('DESIRED_FAT', value);
-    }
+  void updatePreferences(String date, Map updatedPreferences) {
+
+    // preferences tied to a date
+    // edit preferences button only appears on today or future dates
+
+    _preferencesBox.put(date, updatedPreferences);
   }
 }

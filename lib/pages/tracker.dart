@@ -16,6 +16,8 @@ class _TrackerPageState extends State<TrackerPage> {
 
   DateTime selectedDate = DateTime.now()
       .copyWith(hour: 0, minute: 0, second: 0, millisecond: 0, microsecond: 0);
+  DateTime todaysDate = DateTime.now()
+      .copyWith(hour: 0, minute: 0, second: 0, millisecond: 0, microsecond: 0);
 
   LocalDatabase db = LocalDatabase();
 
@@ -66,9 +68,11 @@ class _TrackerPageState extends State<TrackerPage> {
 
   List calcNutrientDelta(int nutrientConsumedToday, String nutrient) {
     double percentageFilled =
-    (nutrientConsumedToday / (db.getPreferences(nutrient)));
+    (nutrientConsumedToday / (db.getPreferences(selectedDate.toString())[nutrient]));
 
-    if (percentageFilled.isInfinite || percentageFilled.isNaN) {
+    if (percentageFilled.isInfinite) {
+      percentageFilled = 100;
+    } else if (percentageFilled.isNaN) {
       percentageFilled = 0;
     }
 
@@ -96,6 +100,48 @@ class _TrackerPageState extends State<TrackerPage> {
     });
   }
 
+  // separate to widget to conditionally show functions only
+  // if selected date today
+  Widget _FloatingActionButtons () {
+    if (selectedDate != todaysDate) {
+      return Container();
+    } else {
+      return Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+
+            FloatingActionButton(
+              heroTag: 'Preferences',
+              backgroundColor: Colors.white,
+              onPressed: () => {
+                Navigator.push(context, MaterialPageRoute(
+                    builder: (context) => PreferencesPage(selectedDate: selectedDate.toString(),)
+                  // rebuild widget on return from adding
+                )).then((_) => setState(() {}))
+              },
+              child: Icon(Icons.edit, color: Colors.black,),
+            ),
+
+            FloatingActionButton(
+              heroTag: 'Add',
+              backgroundColor: Colors.white,
+              onPressed: () => {
+                Navigator.push(context, MaterialPageRoute(
+                    builder: (context) => AddFoodPage(selectedDate: selectedDate.toString())
+                  // rebuild widget on return from adding
+                )).then((_) => setState(() {calcNutrientsConsumedToday();}))
+              },
+              child: Icon(Icons.add, color: Colors.black,),
+            )
+
+          ],
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -105,39 +151,7 @@ class _TrackerPageState extends State<TrackerPage> {
       ),
 
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-
-              FloatingActionButton(
-                heroTag: 'Preferences',
-                backgroundColor: Colors.white,
-                onPressed: () => {
-                  Navigator.push(context, MaterialPageRoute(
-                      builder: (context) => PreferencesPage()
-                    // rebuild widget on return from adding
-                  )).then((_) => setState(() {}))
-                },
-                child: Icon(Icons.edit, color: Colors.black,),
-              ),
-
-              FloatingActionButton(
-                heroTag: 'Add',
-                backgroundColor: Colors.white,
-                onPressed: () => {
-                  Navigator.push(context, MaterialPageRoute(
-                      builder: (context) => AddFoodPage(selectedDate: selectedDate.toString())
-                    // rebuild widget on return from adding
-                  )).then((_) => setState(() {calcNutrientsConsumedToday();}))
-                },
-                child: Icon(Icons.add, color: Colors.black,),
-              )
-
-            ],
-          ),
-      ),
+      floatingActionButton: _FloatingActionButtons(),
 
       body: SingleChildScrollView(
         child: Column(
@@ -164,7 +178,7 @@ class _TrackerPageState extends State<TrackerPage> {
                   ),
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 10.0),
-                    child: Text('${caloriesConsumedToday} / ${db.getPreferences('calories')} Calories'),
+                    child: Text('${caloriesConsumedToday} / ${db.getPreferences(selectedDate.toString())['calories']} Calories'),
                   )
                 ],
               ),
@@ -186,20 +200,20 @@ class _TrackerPageState extends State<TrackerPage> {
                     ),
                   ),
                   Text('P: ${proteinConsumedToday} /'
-                      '${db.getPreferences('protein').toString()}'
+                      '${db.getPreferences(selectedDate.toString())['calories'].toString()}'
                   ),
 
                   SizedBox(
                     height: 30,
                     width: 30,
                     child: CircularProgressIndicator(
-                      value: calcNutrientDelta(carbsConsumedToday, 'carb')[0],
-                      color: calcNutrientDelta(carbsConsumedToday, 'carb')[1],
+                      value: calcNutrientDelta(carbsConsumedToday, 'carbs')[0],
+                      color: calcNutrientDelta(carbsConsumedToday, 'carbs')[1],
                       backgroundColor: Colors.grey[800],
                     ),
                   ),
                   Text('C: ${carbsConsumedToday} /'
-                      '${db.getPreferences('carb').toString()}'
+                      '${db.getPreferences(selectedDate.toString())['carbs'].toString()}'
                   ),
 
                   SizedBox(
@@ -212,7 +226,7 @@ class _TrackerPageState extends State<TrackerPage> {
                     ),
                   ),
                   Text('F: ${fatConsumedToday} /'
-                      '${db.getPreferences('fat').toString()}'
+                      '${db.getPreferences(selectedDate.toString())['fat'].toString()}'
                   )
                 ],
               ),
