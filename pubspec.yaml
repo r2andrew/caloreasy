@@ -41,8 +41,7 @@ dependencies:
   flutter_slidable: ^4.0.0
   expandable: ^5.0.1
   flutter_local_notifications: ^18.0.1
-  timezone: ^0.10.0
-  flutter_timezone: ^4.1.0
+  android_alarm_manager_plus: ^4.0.6
 
 dev_dependencies:
   flutter_test:

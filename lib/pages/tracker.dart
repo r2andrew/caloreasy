@@ -1,3 +1,4 @@
+import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:caloreasy/components/grouped_foods.dart';
 import 'package:caloreasy/database/local_database.dart';
 import 'package:caloreasy/helpers/noti_service.dart';
@@ -8,6 +9,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:openfoodfacts/openfoodfacts.dart';
 import 'add_exercise.dart';
+
+void sendNotification() async {
+
+  NotiService().initNotification();
+
+  LocalDatabase db = LocalDatabase();
+
+  // if no entries for todays date (checked at 5pm), send notification
+  if (!db.foodEntriesToday(DateTime.now().toString())) {
+    NotiService().showNotification(title: 'Add Foods!', body: "Don't forget to track your calories today!");
+  }
+}
 
 class TrackerPage extends StatefulWidget {
   const TrackerPage({super.key});
@@ -26,6 +39,8 @@ class _TrackerPageState extends State<TrackerPage> {
   LocalDatabase db = LocalDatabase();
 
   bool exercisesView = false;
+
+  bool notificationOn = false;
 
   int caloriesConsumedToday = 0;
   int caloriesBurnedToday = 0;
@@ -310,11 +325,41 @@ class _TrackerPageState extends State<TrackerPage> {
 
             DateSelector(),
 
-            MaterialButton(
-                color: Colors.white,
-                textColor: Colors.black,
-                onPressed: () => NotiService().showNotification(title: 'Title', body: 'Body'),
-                child: Text('TEST: Notif'),
+            // TODO: notification testing
+            Container(
+              color: Colors.grey,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  MaterialButton(
+                    color: Colors.white,
+                    textColor: Colors.black,
+                    onPressed: () => NotiService().showNotification(title: 'Title', body: 'Body'),
+                    child: Text('TEST: Notif'),
+                  ),
+                  Row(
+                    children: [
+                      Text('Notifs Off'),
+                      Switch(
+                        value: notificationOn,
+                        onChanged: (value) {
+                          setState(() {
+                            notificationOn = value;
+                          });
+                          if (notificationOn == true) {
+                            AndroidAlarmManager.periodic(const Duration(days: 1), 0, sendNotification,
+                                startAt: todaysDate.copyWith(hour: 17), allowWhileIdle: true, wakeup: true, rescheduleOnReboot: true)
+                                .then((value) => print('Alarm Timer Started = $value'));
+                          } else {
+                            AndroidAlarmManager.cancel(0).then((value) => print('Alarm Timer Canceled = $value'));
+                          }
+                        },
+                      ),
+                      Text('Notifs on'),
+                    ],
+                  ),
+                ],
+              ),
             ),
 
             ExpandablePanel(

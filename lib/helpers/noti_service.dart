@@ -1,8 +1,5 @@
 // credit: mitch koko
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/data/latest.dart' as tz;
-import 'package:timezone/timezone.dart' as tz;
-import 'package:flutter_timezone/flutter_timezone.dart';
 
 class NotiService {
   final notificationsPlugin = FlutterLocalNotificationsPlugin();
@@ -13,11 +10,6 @@ class NotiService {
 
   Future<void> initNotification() async {
     if (_isInitialized) return;
-
-    //init timezone
-    tz.initializeTimeZones();
-    final String currentTimeZone = await FlutterTimezone.getLocalTimezone();
-    tz.setLocalLocation(tz.getLocation(currentTimeZone));
 
     // TODO: add custom icon
     const initSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -54,40 +46,5 @@ class NotiService {
         body,
         notificationDetails()
     );
-  }
-
-  Future<void> scheduleNotification({
-    int id = 1,
-    required String title,
-    required String body,
-    required int hour,
-    required int minute
-  }) async {
-    final now = tz.TZDateTime.now(tz.local);
-
-    var scheduledDate = tz.TZDateTime(
-      tz.local,
-      now.year,
-      now.month,
-      now.day,
-      hour,
-      minute
-    );
-    await notificationsPlugin.zonedSchedule(
-        id,
-        title,
-        body,
-        scheduledDate,
-        notificationDetails(),
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
-        androidScheduleMode:
-            AndroidScheduleMode.inexactAllowWhileIdle,
-        matchDateTimeComponents: DateTimeComponents.time,
-    );
-  }
-
-  Future<void> cancelAllNotification() async {
-    await notificationsPlugin.cancelAll();
   }
 }

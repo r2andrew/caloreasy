@@ -37,6 +37,10 @@ class LocalDatabase {
     return fixedType;
   }
 
+  bool foodEntriesToday (String date) {
+    return readList(date, _foodEntriesBox).isNotEmpty;
+  }
+
   Map<String, List<Product>> getFoodEntriesForDate(String date) {
 
     List<Product> foods = [];

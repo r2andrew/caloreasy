@@ -3,6 +3,7 @@ import 'package:caloreasy/pages/tracker.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/adapters.dart';
+import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 
 void main() async {
 
@@ -21,6 +22,8 @@ void main() async {
 
   // get notifications permission
   NotiService().initNotification();
+
+  await AndroidAlarmManager.initialize();
 
   runApp(const MyApp());
 }
