@@ -1,3 +1,4 @@
+import 'package:caloreasy/helpers/noti_service.dart';
 import 'package:caloreasy/pages/tracker.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
@@ -15,6 +16,11 @@ void main() async {
   // _foodEntriesBox.clear();
   // _preferencesBox.clear();
   // _exerciseEntriesBox.clear();
+
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // get notifications permission
+  NotiService().initNotification();
 
   runApp(const MyApp());
 }

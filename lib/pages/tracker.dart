@@ -1,5 +1,6 @@
 import 'package:caloreasy/components/grouped_foods.dart';
 import 'package:caloreasy/database/local_database.dart';
+import 'package:caloreasy/helpers/noti_service.dart';
 import 'package:caloreasy/pages/add_food.dart';
 import 'package:caloreasy/pages/preferences.dart';
 import 'package:expandable/expandable.dart';
@@ -308,6 +309,13 @@ class _TrackerPageState extends State<TrackerPage> {
             ),
 
             DateSelector(),
+
+            MaterialButton(
+                color: Colors.white,
+                textColor: Colors.black,
+                onPressed: () => NotiService().showNotification(title: 'Title', body: 'Body'),
+                child: Text('TEST: Notif'),
+            ),
 
             ExpandablePanel(
                 theme: ExpandableThemeData(
