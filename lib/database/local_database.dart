@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
+import 'package:caloreasy/helpers/exercise.dart';
 import 'package:hive/hive.dart';
 import 'package:openfoodfacts/openfoodfacts.dart';
 
@@ -7,10 +8,17 @@ class LocalDatabase {
 
   // reference the hive box
 
-  // List<Map<String, dynamic>>
+  // <Map<String, dynamic>>
+  // date : product[]
   final _foodEntriesBox = Hive.box('userFoodEntries');
+
   // Map
+  // date : {}
   final _preferencesBox = Hive.box('userPreferences');
+
+  // Map
+  // date : exercise[]
+  final _exerciseEntriesBox = Hive.box('userExerciseEntries');
 
   /*
   * FOOD METHODS
@@ -19,10 +27,9 @@ class LocalDatabase {
   // Hive can't store objects, they must be serialised into JSON string
   // except it can barely handle that even
   // It converts List<Map<String, dynamic>> into List<dynamic>
-  // which breaks the Product.fromJson de-serializer
-  // So this unsavoury function is necessary to fix the type
-  List<Map<String, dynamic>> readList (String date) {
-    var dynamicList = _foodEntriesBox.get(date, defaultValue: []);
+  // fromJson methods require the correct type
+  List<Map<String, dynamic>> readList (String date, dynamic box) {
+    var dynamicList = box.get(date, defaultValue: []);
     var fixedType =
         (jsonDecode(jsonEncode(dynamicList)) as List)
             .cast<Map<String, dynamic>>();
@@ -35,7 +42,7 @@ class LocalDatabase {
     List<Product> foods = [];
 
     // decode json string back into Product
-    for (final serialisedFood in readList(date)) {
+    for (final serialisedFood in readList(date, _foodEntriesBox)) {
       foods.add(Product.fromJson(serialisedFood));
     }
 
@@ -72,7 +79,7 @@ class LocalDatabase {
     serialisedFood['categories'] = time;
 
     // get currently held data
-    var serialisedFoodList = readList(date);
+    var serialisedFoodList = readList(date, _foodEntriesBox);
 
     // add new food to list
     serialisedFoodList.add(serialisedFood);
@@ -83,7 +90,7 @@ class LocalDatabase {
 
   void deleteFoodEntry(String date, String id) {
 
-    var serialisedFoodList = readList(date);
+    var serialisedFoodList = readList(date, _foodEntriesBox);
 
     for (int index = 0; index < serialisedFoodList.length; index++) {
       if (serialisedFoodList[index]['stores'] == id) {
@@ -100,6 +107,38 @@ class LocalDatabase {
 
   String generateId() => String.fromCharCodes(Iterable.generate(
       24, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
+
+  /*
+  * EXERCISES METHODS
+  * */
+  List<Exercise> getExerciseEntriesForDate (String date) {
+    List entries = readList(date, _exerciseEntriesBox);
+
+    List<Exercise> updatedEntries = entries.map((e) =>
+        Exercise.fromJson(e)
+    ).toList();
+
+    return updatedEntries;
+  }
+
+  void addExerciseEntry(String date, String name, int minutes) {
+    var exercise = Exercise(name, minutes);
+    var entry = exercise.toJson();
+
+    List entries = _exerciseEntriesBox.get(date, defaultValue: []);
+
+    entries.add(entry);
+
+    _exerciseEntriesBox.put(date, entries);
+  }
+
+  // unlike food, exercises are always presented with their original indexing
+  // so using relative indexing is fine
+  void deleteExerciseEntry(String date, int index) {
+    List entries = _exerciseEntriesBox.get(date, defaultValue: []);
+    entries.removeAt(index);
+    _exerciseEntriesBox.put(date, entries);
+  }
 
   /*
   * PREFERENCES METHODS

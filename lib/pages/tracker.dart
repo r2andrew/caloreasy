@@ -2,8 +2,11 @@ import 'package:caloreasy/components/grouped_foods.dart';
 import 'package:caloreasy/database/local_database.dart';
 import 'package:caloreasy/pages/add_food.dart';
 import 'package:caloreasy/pages/preferences.dart';
+import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:openfoodfacts/openfoodfacts.dart';
+import 'add_exercise.dart';
 
 class TrackerPage extends StatefulWidget {
   const TrackerPage({super.key});
@@ -21,7 +24,10 @@ class _TrackerPageState extends State<TrackerPage> {
 
   LocalDatabase db = LocalDatabase();
 
+  bool exercisesView = false;
+
   int caloriesConsumedToday = 0;
+  int caloriesBurnedToday = 0;
   int proteinConsumedToday = 0;
   int carbsConsumedToday = 0;
   int fatConsumedToday = 0;
@@ -35,6 +41,7 @@ class _TrackerPageState extends State<TrackerPage> {
   void calcNutrientsConsumedToday() {
 
     int caloriesConsumed = 0;
+    int caloriesBurned = 0;
     int proteinConsumed = 0;
     int carbsConsumed = 0;
     int fatConsumed = 0;
@@ -58,8 +65,14 @@ class _TrackerPageState extends State<TrackerPage> {
                 (int.parse(food.quantity!) / 100)).toInt();
       }
     }
+    var exerciseList = db.getExerciseEntriesForDate(selectedDate.toString());
+    for (var exercise in exerciseList) {
+      caloriesBurned += exercise.calBurned;
+    }
+
     setState(() {
       caloriesConsumedToday = caloriesConsumed;
+      caloriesBurnedToday = caloriesBurned;
       proteinConsumedToday = proteinConsumed;
       carbsConsumedToday = carbsConsumed;
       fatConsumedToday = fatConsumed;
@@ -99,6 +112,12 @@ class _TrackerPageState extends State<TrackerPage> {
       calcNutrientsConsumedToday();
     });
   }
+  
+  void deleteExercise(index) {
+    setState(() {
+      db.deleteExerciseEntry(selectedDate.toString(), index);
+    });
+  }
 
   // separate to widget to conditionally show functions only
   // if selected date today
@@ -125,6 +144,18 @@ class _TrackerPageState extends State<TrackerPage> {
             ),
 
             FloatingActionButton(
+              heroTag: 'Exercise',
+              backgroundColor: Colors.white,
+              onPressed: () => {
+                Navigator.push(context, MaterialPageRoute(
+                    builder: (context) => AddExercisePage(selectedDate: selectedDate.toString(),)
+                  // rebuild widget on return from adding
+                )).then((_) => setState(() {calcNutrientsConsumedToday();}))
+              },
+              child: Icon(Icons.run_circle, color: Colors.black,),
+            ),
+
+            FloatingActionButton(
               heroTag: 'Add',
               backgroundColor: Colors.white,
               onPressed: () => {
@@ -133,7 +164,7 @@ class _TrackerPageState extends State<TrackerPage> {
                   // rebuild widget on return from adding
                 )).then((_) => setState(() {calcNutrientsConsumedToday();}))
               },
-              child: Icon(Icons.add, color: Colors.black,),
+              child: Icon(Icons.food_bank, color: Colors.black,),
             )
 
           ],
@@ -143,7 +174,7 @@ class _TrackerPageState extends State<TrackerPage> {
   }
 
   Widget DateSelector () {
-    // only display forward option if selectedDate - 1 is before todays date
+    // only display forward option if selectedDate is before todaysDate
     // (can't select future dates)
     if (selectedDate.isBefore(todaysDate)) {
       return Padding(
@@ -215,14 +246,14 @@ class _TrackerPageState extends State<TrackerPage> {
                   Positioned.fill(
                     child: LinearProgressIndicator(
                       //Here you pass the percentage
-                      value: calcNutrientDelta(caloriesConsumedToday, 'calories')[0],
-                      color: calcNutrientDelta(caloriesConsumedToday, 'calories')[1],
+                      value: calcNutrientDelta(caloriesConsumedToday - caloriesBurnedToday, 'calories')[0],
+                      color: calcNutrientDelta(caloriesConsumedToday - caloriesBurnedToday, 'calories')[1],
                       backgroundColor: Colors.blue.withAlpha(50),
                     ),
                   ),
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 10.0),
-                    child: Text('${caloriesConsumedToday} / ${db.getPreferences(selectedDate.toString())['calories']} Calories'),
+                    child: Text('${caloriesConsumedToday} (-${caloriesBurnedToday}) / ${db.getPreferences(selectedDate.toString())['calories']} Calories'),
                   )
                 ],
               ),
@@ -277,6 +308,54 @@ class _TrackerPageState extends State<TrackerPage> {
             ),
 
             DateSelector(),
+
+            ExpandablePanel(
+                theme: ExpandableThemeData(
+                  iconColor: Colors.white
+                ),
+                header: Container(
+                    color: Colors.grey[900],
+                    child: Center(child: Text('Exercises'))
+                ),
+                collapsed: Text(''),
+                expanded: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: db.getExerciseEntriesForDate(selectedDate.toString()).length,
+                    itemBuilder: (context, index) {
+                      // return Text(db.getExerciseEntriesForDate(selectedDate.toString()).toString());
+                      return Container(
+                        padding: EdgeInsets.all(8.0),
+                        decoration: BoxDecoration(
+                            color: Colors.grey[800],
+                            borderRadius: BorderRadius.circular(20)
+                        ),
+                        child:
+                        Slidable(
+                          endActionPane: ActionPane(
+                              motion: StretchMotion(),
+                              children: [
+                                SlidableAction(
+                                  onPressed: (context) => deleteExercise(index),
+                                  icon: Icons.delete,
+                                )
+                              ]
+                          ),
+                          child: Row(
+                            children: [
+                              Text('Name: ${db.getExerciseEntriesForDate(selectedDate.toString())
+                                  [index].name.toString()}'
+                                  '\nDuration: ${db.getExerciseEntriesForDate(selectedDate.toString())
+                                  [index].duration.toString()} minutes'
+                                  '\nCalories Burned: ${db.getExerciseEntriesForDate(selectedDate.toString())
+                                  [index].calBurned.toString()}'
+                              )
+                            ],
+                          ),
+                        ),
+                      );
+                    }
+                ),
+            ),
 
             GroupedFoods(time: 'Morning',
                 date: selectedDate, deleteFunction: deleteFood),
