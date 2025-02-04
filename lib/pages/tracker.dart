@@ -142,6 +142,50 @@ class _TrackerPageState extends State<TrackerPage> {
     }
   }
 
+  Widget DateSelector () {
+    // only display forward option if selectedDate - 1 is before todays date
+    // (can't select future dates)
+    if (selectedDate.isBefore(todaysDate)) {
+      return Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            MaterialButton(
+              color: Colors.grey[800],
+              onPressed: () => changeSelectedDate("back"),
+              child: Text('Back'),
+            ),
+            Text('${selectedDate.day}-${selectedDate.month}-${selectedDate
+                .year}'),
+            MaterialButton(
+              color: Colors.grey[800],
+              onPressed: () => changeSelectedDate("forward"),
+              child: Text('Forward'),
+            )
+          ],
+        ),
+      );
+    } else {
+      return Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            MaterialButton(
+              color: Colors.grey[800],
+              onPressed: () => changeSelectedDate("back"),
+              child: Text('Back'),
+            ),
+            Text('${selectedDate.day}-${selectedDate.month}-${selectedDate
+                .year}'),
+            SizedBox(width: 80, height: 20)
+          ],
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -232,25 +276,7 @@ class _TrackerPageState extends State<TrackerPage> {
               ),
             ),
 
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  MaterialButton(
-                    color: Colors.grey[800],
-                    onPressed: () => changeSelectedDate("back"),
-                    child: Text('Back'),
-                  ),
-                  Text('${selectedDate.day}-${selectedDate.month}-${selectedDate.year}'),
-                  MaterialButton(
-                    color: Colors.grey[800],
-                    onPressed: () => changeSelectedDate("forward"),
-                    child: Text('Forward'),
-                  )
-                ],
-              ),
-            ),
+            DateSelector(),
 
             GroupedFoods(time: 'Morning',
                 date: selectedDate, deleteFunction: deleteFood),
