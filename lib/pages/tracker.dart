@@ -1,7 +1,7 @@
+import 'package:caloreasy/components/exercises.dart';
 import 'package:caloreasy/components/grouped_foods.dart';
 import 'package:caloreasy/database/local_database.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:openfoodfacts/openfoodfacts.dart';
 import '../components/date_selector.dart';
 
@@ -111,63 +111,6 @@ class _TrackerPageState extends State<TrackerPage> {
     setState(() {
       db.deleteExerciseEntry(widget.selectedDate.toString(), index);
     });
-  }
-  
-  Widget itemsView () {
-    if (tabSelection == 'food') {
-      return GroupedFoods(date: widget.selectedDate, deleteFunction: deleteFood);
-    } else {
-      return Container(
-        color: Colors.grey[800],
-        child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: db.getExerciseEntriesForDate(widget.selectedDate.toString()).length,
-            itemBuilder: (context, index) {
-              return Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey[800],
-                ),
-                child: Column(
-                  children: [
-                    Slidable(
-                      endActionPane: ActionPane(
-                          motion: StretchMotion(),
-                          children: [
-                            SlidableAction(
-                              onPressed: (context) => deleteExercise(index),
-                              icon: Icons.delete,
-                              backgroundColor: Colors.red,
-                            )
-                          ]
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Row(
-                          children: [
-                            Text('Name: ${db.getExerciseEntriesForDate(widget.selectedDate.toString())
-                            [index].name.toString()}'
-                                '\nDuration: ${db.getExerciseEntriesForDate(widget.selectedDate.toString())
-                            [index].duration.toString()} minutes'
-                                '\nCalories Burned: ${db.getExerciseEntriesForDate(widget.selectedDate.toString())
-                            [index].calBurned.toString()}'
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Divider(
-                      indent: 0,
-                      height: 5,
-                      thickness: 1,
-                      color: Colors.white,
-                    ),
-                  ],
-                ),
-              );
-            }
-        ),
-      );
-    }
   }
 
   @override
@@ -345,8 +288,9 @@ class _TrackerPageState extends State<TrackerPage> {
 
             Divider(height: 1, thickness: 1, color: Colors.grey[800],),
 
-
-            itemsView(),
+            tabSelection == 'food' ?
+              GroupedFoods(date: widget.selectedDate, deleteFunction: deleteFood) :
+              Exercises(selectedDate: widget.selectedDate.toString(), deleteExercise: deleteExercise,)
           ],
         ),
       ),
