@@ -7,10 +7,12 @@ import '../components/tdee_dialog.dart';
 class PreferencesPage extends StatefulWidget {
 
   String selectedDate;
+  Function goToTracker;
 
   PreferencesPage({
     super.key,
-    required this.selectedDate
+    required this.selectedDate,
+    required this.goToTracker
   });
 
   @override
@@ -87,7 +89,7 @@ class _PreferencesPageState extends State<PreferencesPage> {
           };
           db.updatePreferences(widget.selectedDate, updatedPreferences);
 
-          Navigator.of(context).pop();
+          widget.goToTracker();
         }
   }
 

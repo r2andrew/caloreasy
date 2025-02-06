@@ -1,29 +1,19 @@
-import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:caloreasy/components/grouped_foods.dart';
 import 'package:caloreasy/database/local_database.dart';
-import 'package:caloreasy/helpers/noti_service.dart';
-import 'package:caloreasy/pages/add_food.dart';
-import 'package:caloreasy/pages/preferences.dart';
-import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:openfoodfacts/openfoodfacts.dart';
-import 'add_exercise.dart';
-
-void sendNotification() async {
-
-  NotiService().initNotification();
-
-  LocalDatabase db = LocalDatabase();
-
-  // if no entries for todays date (checked at 5pm), send notification
-  if (!db.foodEntriesToday(DateTime.now().toString())) {
-    NotiService().showNotification(title: 'Add Foods!', body: "Don't forget to track your calories today!");
-  }
-}
 
 class TrackerPage extends StatefulWidget {
-  const TrackerPage({super.key});
+
+  Function updateDate;
+  DateTime selectedDate;
+
+  TrackerPage({
+    super.key,
+    required this.updateDate,
+    required this.selectedDate
+  });
 
   @override
   State<TrackerPage> createState() => _TrackerPageState();
@@ -31,14 +21,12 @@ class TrackerPage extends StatefulWidget {
 
 class _TrackerPageState extends State<TrackerPage> {
 
-  DateTime selectedDate = DateTime.now()
-      .copyWith(hour: 0, minute: 0, second: 0, millisecond: 0, microsecond: 0);
   DateTime todaysDate = DateTime.now()
       .copyWith(hour: 0, minute: 0, second: 0, millisecond: 0, microsecond: 0);
 
   LocalDatabase db = LocalDatabase();
 
-  bool exercisesView = false;
+  String tabSelection = 'food';
 
   bool notificationOn = false;
 
@@ -65,7 +53,7 @@ class _TrackerPageState extends State<TrackerPage> {
     var times = ['Morning', 'Afternoon', 'Evening'];
 
     for (var time in times) {
-      var foodList = db.getFoodEntriesForDate(selectedDate.toString())[time] ?? [];
+      var foodList = db.getFoodEntriesForDate(widget.selectedDate.toString())[time] ?? [];
       for (var food in foodList) {
         caloriesConsumed +=
             (food.nutriments!.getComputedKJ(PerSize.oneHundredGrams)! *
@@ -81,7 +69,7 @@ class _TrackerPageState extends State<TrackerPage> {
                 (int.parse(food.quantity!) / 100)).toInt();
       }
     }
-    var exerciseList = db.getExerciseEntriesForDate(selectedDate.toString());
+    var exerciseList = db.getExerciseEntriesForDate(widget.selectedDate.toString());
     for (var exercise in exerciseList) {
       caloriesBurned += exercise.calBurned;
     }
@@ -97,7 +85,7 @@ class _TrackerPageState extends State<TrackerPage> {
 
   List calcNutrientDelta(int nutrientConsumedToday, String nutrient) {
     double percentageFilled =
-    (nutrientConsumedToday / (db.getPreferences(selectedDate.toString())[nutrient]));
+    (nutrientConsumedToday / (db.getPreferences(widget.selectedDate.toString())[nutrient]));
 
     if (percentageFilled.isInfinite) {
       percentageFilled = 100;
@@ -114,9 +102,9 @@ class _TrackerPageState extends State<TrackerPage> {
   void changeSelectedDate(String direction) {
     setState(() {
       if (direction == "forward") {
-        selectedDate = selectedDate.add(Duration(days: 1));
+        widget.updateDate(widget.selectedDate.add(Duration(days: 1)));
       } else {
-        selectedDate = selectedDate.subtract(Duration(days: 1));
+        widget.updateDate(widget.selectedDate.subtract(Duration(days: 1)));
       }
       calcNutrientsConsumedToday();
     });
@@ -124,110 +112,119 @@ class _TrackerPageState extends State<TrackerPage> {
 
   void deleteFood (id) {
     setState(() {
-      db.deleteFoodEntry(selectedDate.toString(), id);
+      db.deleteFoodEntry(widget.selectedDate.toString(), id);
       calcNutrientsConsumedToday();
     });
   }
   
   void deleteExercise(index) {
     setState(() {
-      db.deleteExerciseEntry(selectedDate.toString(), index);
+      db.deleteExerciseEntry(widget.selectedDate.toString(), index);
     });
   }
 
-  // separate to widget to conditionally show functions only
-  // if selected date today
-  Widget _FloatingActionButtons () {
-    if (selectedDate != todaysDate) {
-      return Container();
+  Widget DateSelector () {
+    // only display forward option if widget.selectedDate is before todaysDate
+    // (can't select future dates)
+    if (widget.selectedDate.isBefore(todaysDate)) {
+      return Container(
+        color: Colors.blue.withAlpha(50),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              MaterialButton(
+                color: Colors.grey[800],
+                onPressed: () => changeSelectedDate("back"),
+                child: Text('Back'),
+              ),
+              Text('${widget.selectedDate.day}-${widget.selectedDate.month}-${widget.selectedDate
+                  .year}'),
+              MaterialButton(
+                color: Colors.grey[800],
+                onPressed: () => changeSelectedDate("forward"),
+                child: Text('Forward'),
+              )
+            ],
+          ),
+        ),
+      );
     } else {
-      return Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-
-            FloatingActionButton(
-              heroTag: 'Preferences',
-              backgroundColor: Colors.white,
-              onPressed: () => {
-                Navigator.push(context, MaterialPageRoute(
-                    builder: (context) => PreferencesPage(selectedDate: selectedDate.toString(),)
-                  // rebuild widget on return from adding
-                )).then((_) => setState(() {}))
-              },
-              child: Icon(Icons.edit, color: Colors.black,),
-            ),
-
-            FloatingActionButton(
-              heroTag: 'Exercise',
-              backgroundColor: Colors.white,
-              onPressed: () => {
-                Navigator.push(context, MaterialPageRoute(
-                    builder: (context) => AddExercisePage(selectedDate: selectedDate.toString(),)
-                  // rebuild widget on return from adding
-                )).then((_) => setState(() {calcNutrientsConsumedToday();}))
-              },
-              child: Icon(Icons.run_circle, color: Colors.black,),
-            ),
-
-            FloatingActionButton(
-              heroTag: 'Add',
-              backgroundColor: Colors.white,
-              onPressed: () => {
-                Navigator.push(context, MaterialPageRoute(
-                    builder: (context) => AddFoodPage(selectedDate: selectedDate.toString())
-                  // rebuild widget on return from adding
-                )).then((_) => setState(() {calcNutrientsConsumedToday();}))
-              },
-              child: Icon(Icons.food_bank, color: Colors.black,),
-            )
-
-          ],
+      return Container(
+        color: Colors.black,
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              MaterialButton(
+                color: Colors.grey[800],
+                onPressed: () => changeSelectedDate("back"),
+                child: Text('Back'),
+              ),
+              Text('${widget.selectedDate.day}-${widget.selectedDate.month}-${widget.selectedDate
+                  .year}'),
+              SizedBox(width: 80, height: 20)
+            ],
+          ),
         ),
       );
     }
   }
-
-  Widget DateSelector () {
-    // only display forward option if selectedDate is before todaysDate
-    // (can't select future dates)
-    if (selectedDate.isBefore(todaysDate)) {
-      return Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            MaterialButton(
-              color: Colors.grey[800],
-              onPressed: () => changeSelectedDate("back"),
-              child: Text('Back'),
-            ),
-            Text('${selectedDate.day}-${selectedDate.month}-${selectedDate
-                .year}'),
-            MaterialButton(
-              color: Colors.grey[800],
-              onPressed: () => changeSelectedDate("forward"),
-              child: Text('Forward'),
-            )
-          ],
-        ),
-      );
+  
+  Widget itemsView () {
+    if (tabSelection == 'food') {
+      return GroupedFoods(date: widget.selectedDate, deleteFunction: deleteFood);
     } else {
-      return Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            MaterialButton(
-              color: Colors.grey[800],
-              onPressed: () => changeSelectedDate("back"),
-              child: Text('Back'),
-            ),
-            Text('${selectedDate.day}-${selectedDate.month}-${selectedDate
-                .year}'),
-            SizedBox(width: 80, height: 20)
-          ],
+      return Container(
+        color: Colors.grey[800],
+        child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: db.getExerciseEntriesForDate(widget.selectedDate.toString()).length,
+            itemBuilder: (context, index) {
+              return Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey[800],
+                ),
+                child: Column(
+                  children: [
+                    Slidable(
+                      endActionPane: ActionPane(
+                          motion: StretchMotion(),
+                          children: [
+                            SlidableAction(
+                              onPressed: (context) => deleteExercise(index),
+                              icon: Icons.delete,
+                              backgroundColor: Colors.red,
+                            )
+                          ]
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          children: [
+                            Text('Name: ${db.getExerciseEntriesForDate(widget.selectedDate.toString())
+                            [index].name.toString()}'
+                                '\nDuration: ${db.getExerciseEntriesForDate(widget.selectedDate.toString())
+                            [index].duration.toString()} minutes'
+                                '\nCalories Burned: ${db.getExerciseEntriesForDate(widget.selectedDate.toString())
+                            [index].calBurned.toString()}'
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Divider(
+                      indent: 0,
+                      height: 5,
+                      thickness: 1,
+                      color: Colors.white,
+                    ),
+                  ],
+                ),
+              );
+            }
         ),
       );
     }
@@ -241,19 +238,13 @@ class _TrackerPageState extends State<TrackerPage> {
         backgroundColor: Colors.black,
       ),
 
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: _FloatingActionButtons(),
-
       body: SingleChildScrollView(
         child: Column(
           children: [
 
             Container(
               clipBehavior: Clip.hardEdge,
-              margin: const EdgeInsets.symmetric(horizontal: 20.0),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20.0),
-              ),
+              decoration: BoxDecoration(),
               height: 80.0,
               width: double.infinity,
               child: Stack(
@@ -269,154 +260,150 @@ class _TrackerPageState extends State<TrackerPage> {
                   ),
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 10.0),
-                    child: Text('${caloriesConsumedToday} (-${caloriesBurnedToday}) / ${db.getPreferences(selectedDate.toString())['calories']} Calories'),
+                    child: Text('${caloriesConsumedToday} (-${caloriesBurnedToday}) / ${db.getPreferences(widget.selectedDate.toString())['calories']} Calories'),
                   )
                 ],
               ),
             ),
 
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
+            Container(
+              color: Colors.black,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
 
-                  SizedBox(
-                    height: 30,
-                    width: 30,
-                    child: CircularProgressIndicator(
-                      value: calcNutrientDelta(proteinConsumedToday, 'protein')[0],
-                      color: calcNutrientDelta(proteinConsumedToday, 'protein')[1],
-                      backgroundColor: Colors.grey[800],
+                    SizedBox(
+                      height: 30,
+                      width: 30,
+                      child: CircularProgressIndicator(
+                        value: calcNutrientDelta(proteinConsumedToday, 'protein')[0],
+                        color: calcNutrientDelta(proteinConsumedToday, 'protein')[1],
+                        backgroundColor: Colors.grey[800],
+                      ),
                     ),
-                  ),
-                  Text('P: ${proteinConsumedToday} /'
-                      '${db.getPreferences(selectedDate.toString())['calories'].toString()}'
-                  ),
+                    Text('P: ${proteinConsumedToday} /'
+                        '${db.getPreferences(widget.selectedDate.toString())['calories'].toString()}'
+                    ),
 
-                  SizedBox(
-                    height: 30,
-                    width: 30,
-                    child: CircularProgressIndicator(
-                      value: calcNutrientDelta(carbsConsumedToday, 'carbs')[0],
-                      color: calcNutrientDelta(carbsConsumedToday, 'carbs')[1],
-                      backgroundColor: Colors.grey[800],
+                    SizedBox(
+                      height: 30,
+                      width: 30,
+                      child: CircularProgressIndicator(
+                        value: calcNutrientDelta(carbsConsumedToday, 'carbs')[0],
+                        color: calcNutrientDelta(carbsConsumedToday, 'carbs')[1],
+                        backgroundColor: Colors.grey[800],
+                      ),
                     ),
-                  ),
-                  Text('C: ${carbsConsumedToday} /'
-                      '${db.getPreferences(selectedDate.toString())['carbs'].toString()}'
-                  ),
+                    Text('C: ${carbsConsumedToday} /'
+                        '${db.getPreferences(widget.selectedDate.toString())['carbs'].toString()}'
+                    ),
 
-                  SizedBox(
-                    height: 30,
-                    width: 30,
-                    child: CircularProgressIndicator(
-                      value: calcNutrientDelta(fatConsumedToday, 'fat')[0],
-                      color: calcNutrientDelta(fatConsumedToday, 'fat')[1],
-                      backgroundColor: Colors.grey[800],
+                    SizedBox(
+                      height: 30,
+                      width: 30,
+                      child: CircularProgressIndicator(
+                        value: calcNutrientDelta(fatConsumedToday, 'fat')[0],
+                        color: calcNutrientDelta(fatConsumedToday, 'fat')[1],
+                        backgroundColor: Colors.grey[800],
+                      ),
                     ),
-                  ),
-                  Text('F: ${fatConsumedToday} /'
-                      '${db.getPreferences(selectedDate.toString())['fat'].toString()}'
-                  )
-                ],
+                    Text('F: ${fatConsumedToday} /'
+                        '${db.getPreferences(widget.selectedDate.toString())['fat'].toString()}'
+                    )
+                  ],
+                ),
               ),
             ),
+
+            Divider(height: 5, thickness: 1, color: Colors.grey[600],),
 
             DateSelector(),
 
+            Divider(height: 5, thickness: 1, color: Colors.grey[600],),
+
             // TODO: notification testing
+            // Container(
+            //   color: Colors.grey,
+            //   child: Row(
+            //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            //     children: [
+            //       MaterialButton(
+            //         color: Colors.white,
+            //         textColor: Colors.black,
+            //         onPressed: () => NotiService().showNotification(title: 'Title', body: 'Body'),
+            //         child: Text('TEST: Notif'),
+            //       ),
+            //       Row(
+            //         children: [
+            //           Text('Notifs Off'),
+            //           Switch(
+            //             value: notificationOn,
+            //             onChanged: (value) {
+            //               setState(() {
+            //                 notificationOn = value;
+            //               });
+            //               if (notificationOn == true) {
+            //                 AndroidAlarmManager.periodic(const Duration(days: 1), 0, () => NotiService.scheduledNotification(),
+            //                     startAt: todaysDate.copyWith(hour: 17), allowWhileIdle: true, wakeup: true, rescheduleOnReboot: true)
+            //                     .then((value) => print('Alarm Timer Started = $value'));
+            //               } else {
+            //                 AndroidAlarmManager.cancel(0).then((value) => print('Alarm Timer Canceled = $value'));
+            //               }
+            //             },
+            //           ),
+            //           Text('Notifs on'),
+            //         ],
+            //       ),
+            //     ],
+            //   ),
+            // ),
+
             Container(
-              color: Colors.grey,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              color: Colors.black,
+              child:
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  MaterialButton(
-                    color: Colors.white,
-                    textColor: Colors.black,
-                    onPressed: () => NotiService().showNotification(title: 'Title', body: 'Body'),
-                    child: Text('TEST: Notif'),
+                  Expanded(
+                      child: MaterialButton(
+                        // (selected == 'food') ? blue : white
+                          textColor: (tabSelection == 'food') ? Colors.blue : Colors.white,
+                          height: 60,
+                          onPressed: () => setState(() {
+                            tabSelection = 'food';
+                          }),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text('Food'),
+                              Icon(Icons.food_bank)
+                            ],
+                          ),
+                      )
                   ),
-                  Row(
-                    children: [
-                      Text('Notifs Off'),
-                      Switch(
-                        value: notificationOn,
-                        onChanged: (value) {
-                          setState(() {
-                            notificationOn = value;
-                          });
-                          if (notificationOn == true) {
-                            AndroidAlarmManager.periodic(const Duration(days: 1), 0, sendNotification,
-                                startAt: todaysDate.copyWith(hour: 17), allowWhileIdle: true, wakeup: true, rescheduleOnReboot: true)
-                                .then((value) => print('Alarm Timer Started = $value'));
-                          } else {
-                            AndroidAlarmManager.cancel(0).then((value) => print('Alarm Timer Canceled = $value'));
-                          }
-                        },
-                      ),
-                      Text('Notifs on'),
-                    ],
-                  ),
+                  Expanded(
+                      child: MaterialButton(
+                        textColor: (tabSelection == 'exercise') ? Colors.blue : Colors.white,
+                        height: 60,
+                        onPressed: () => setState(() {
+                          tabSelection = 'exercise';
+                        }),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text('Exercises'),
+                            Icon(Icons.run_circle)
+                          ],
+                        ),
+                      )
+                  )
                 ],
               ),
             ),
-
-            ExpandablePanel(
-                theme: ExpandableThemeData(
-                  iconColor: Colors.white
-                ),
-                header: Container(
-                    color: Colors.grey[900],
-                    child: Center(child: Text('Exercises'))
-                ),
-                collapsed: Text(''),
-                expanded: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: db.getExerciseEntriesForDate(selectedDate.toString()).length,
-                    itemBuilder: (context, index) {
-                      // return Text(db.getExerciseEntriesForDate(selectedDate.toString()).toString());
-                      return Container(
-                        padding: EdgeInsets.all(8.0),
-                        decoration: BoxDecoration(
-                            color: Colors.grey[800],
-                            borderRadius: BorderRadius.circular(20)
-                        ),
-                        child:
-                        Slidable(
-                          endActionPane: ActionPane(
-                              motion: StretchMotion(),
-                              children: [
-                                SlidableAction(
-                                  onPressed: (context) => deleteExercise(index),
-                                  icon: Icons.delete,
-                                )
-                              ]
-                          ),
-                          child: Row(
-                            children: [
-                              Text('Name: ${db.getExerciseEntriesForDate(selectedDate.toString())
-                                  [index].name.toString()}'
-                                  '\nDuration: ${db.getExerciseEntriesForDate(selectedDate.toString())
-                                  [index].duration.toString()} minutes'
-                                  '\nCalories Burned: ${db.getExerciseEntriesForDate(selectedDate.toString())
-                                  [index].calBurned.toString()}'
-                              )
-                            ],
-                          ),
-                        ),
-                      );
-                    }
-                ),
-            ),
-
-            GroupedFoods(time: 'Morning',
-                date: selectedDate, deleteFunction: deleteFood),
-            GroupedFoods(time: 'Afternoon',
-                date: selectedDate, deleteFunction: deleteFood,),
-            GroupedFoods(time: 'Evening',
-                date: selectedDate, deleteFunction: deleteFood,)
-
+            
+            itemsView(),
           ],
         ),
       ),

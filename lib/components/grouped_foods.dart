@@ -4,13 +4,11 @@ import 'package:flutter/material.dart';
 
 class GroupedFoods extends StatefulWidget {
 
-  final String time;
   final DateTime date;
   final Function deleteFunction;
 
   const GroupedFoods({
     super.key,
-    required this.time,
     required this.date,
     required this.deleteFunction
   });
@@ -31,27 +29,36 @@ class _GroupedFoodsState extends State<GroupedFoods> {
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    // if entries exist for this time, return nothing
-    if (db.getFoodEntriesForDate(widget.date.toString())[widget.time] == null) {
+  Widget oneGroup (String time) {
+    if (db.getFoodEntriesForDate(widget.date.toString())[time] == null) {
       return Container();
     }
     return Column(
+        children: [
+          Text(time),
+          ListView.builder(
+              shrinkWrap: true,
+              itemCount: db.getFoodEntriesForDate(widget.date.toString())[time]?.length ?? 0,
+              itemBuilder: (context, index) {
+                var food = db.getFoodEntriesForDate(widget.date.toString())[time]![index];
+                return SavedFoodTile(
+                  food: food,
+                  deleteFunction: (context) => deleteFood(food.stores),
+                );
+              }
+          )
+        ]
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
       children: [
-        Text(widget.time),
-        ListView.builder(
-            shrinkWrap: true,
-            itemCount: db.getFoodEntriesForDate(widget.date.toString())[widget.time]?.length ?? 0,
-            itemBuilder: (context, index) {
-              var food = db.getFoodEntriesForDate(widget.date.toString())[widget.time]![index];
-              return SavedFoodTile(
-                food: food,
-                deleteFunction: (context) => deleteFood(food.stores),
-              );
-            }
-        )
-      ]
+        oneGroup('Morning'),
+        oneGroup('Afternoon'),
+        oneGroup('Evening')
+      ],
     );
   }
 }

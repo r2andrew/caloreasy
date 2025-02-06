@@ -1,9 +1,11 @@
 import 'package:caloreasy/helpers/noti_service.dart';
+import 'package:caloreasy/pages/base_page.dart';
 import 'package:caloreasy/pages/tracker.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
+import 'dart:io' show Platform;
 
 void main() async {
 
@@ -20,10 +22,12 @@ void main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
 
-  // get notifications permission
+  // get notifications permission / init service
   NotiService().initNotification();
 
-  await AndroidAlarmManager.initialize();
+  // initialise Alarm (notif scheduler) service if on android
+  // debugging on linux crashes otherwise
+  if (Platform.isAndroid) await AndroidAlarmManager.initialize();
 
   runApp(const MyApp());
 }
@@ -40,7 +44,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.highContrastDark(),
         useMaterial3: true,
       ),
-      home: TrackerPage(),
+      home: BasePage(),
     );
   }
 }
