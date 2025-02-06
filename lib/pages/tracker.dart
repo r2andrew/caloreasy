@@ -3,6 +3,7 @@ import 'package:caloreasy/database/local_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:openfoodfacts/openfoodfacts.dart';
+import '../components/date_selector.dart';
 
 class TrackerPage extends StatefulWidget {
 
@@ -99,17 +100,6 @@ class _TrackerPageState extends State<TrackerPage> {
     return [percentageFilled, Colors.green];
   }
 
-  void changeSelectedDate(String direction) {
-    setState(() {
-      if (direction == "forward") {
-        widget.updateDate(widget.selectedDate.add(Duration(days: 1)));
-      } else {
-        widget.updateDate(widget.selectedDate.subtract(Duration(days: 1)));
-      }
-      calcNutrientsConsumedToday();
-    });
-  }
-
   void deleteFood (id) {
     setState(() {
       db.deleteFoodEntry(widget.selectedDate.toString(), id);
@@ -121,56 +111,6 @@ class _TrackerPageState extends State<TrackerPage> {
     setState(() {
       db.deleteExerciseEntry(widget.selectedDate.toString(), index);
     });
-  }
-
-  Widget DateSelector () {
-    // only display forward option if widget.selectedDate is before todaysDate
-    // (can't select future dates)
-    if (widget.selectedDate.isBefore(todaysDate)) {
-      return Container(
-        color: Colors.blue.withAlpha(50),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              MaterialButton(
-                color: Colors.grey[800],
-                onPressed: () => changeSelectedDate("back"),
-                child: Text('Back'),
-              ),
-              Text('${widget.selectedDate.day}-${widget.selectedDate.month}-${widget.selectedDate
-                  .year}'),
-              MaterialButton(
-                color: Colors.grey[800],
-                onPressed: () => changeSelectedDate("forward"),
-                child: Text('Forward'),
-              )
-            ],
-          ),
-        ),
-      );
-    } else {
-      return Container(
-        color: Colors.black,
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              MaterialButton(
-                color: Colors.grey[800],
-                onPressed: () => changeSelectedDate("back"),
-                child: Text('Back'),
-              ),
-              Text('${widget.selectedDate.day}-${widget.selectedDate.month}-${widget.selectedDate
-                  .year}'),
-              SizedBox(width: 80, height: 20)
-            ],
-          ),
-        ),
-      );
-    }
   }
   
   Widget itemsView () {
@@ -317,11 +257,11 @@ class _TrackerPageState extends State<TrackerPage> {
               ),
             ),
 
-            Divider(height: 5, thickness: 1, color: Colors.grey[600],),
+            Divider(height: 1, thickness: 1, color: Colors.grey[800],),
 
-            DateSelector(),
+            DateSelector(selectedDate: widget.selectedDate, updateDate: widget.updateDate),
 
-            Divider(height: 5, thickness: 1, color: Colors.grey[600],),
+            Divider(height: 1, thickness: 1, color: Colors.grey[800],),
 
             // TODO: notification testing
             // Container(
@@ -402,7 +342,10 @@ class _TrackerPageState extends State<TrackerPage> {
                 ],
               ),
             ),
-            
+
+            Divider(height: 1, thickness: 1, color: Colors.grey[800],),
+
+
             itemsView(),
           ],
         ),

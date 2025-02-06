@@ -28,9 +28,10 @@ class _BasePageState extends State<BasePage> {
     }
   }
 
-  void updateDate(DateTime changedDate) {
+  void updateDate(String direction) {
     setState(() {
-      selectedDate = changedDate;
+      direction == 'forward' ? selectedDate = selectedDate.add(Duration(days: 1)) :
+          selectedDate = selectedDate.subtract(Duration(days: 1));
     });
   }
 
