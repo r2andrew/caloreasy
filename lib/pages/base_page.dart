@@ -21,9 +21,11 @@ class _BasePageState extends State<BasePage> {
       .copyWith(hour: 0, minute: 0, second: 0, millisecond: 0, microsecond: 0);
 
   void navigateBottomBar (int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    if (selectedDate == todaysDate) {
+      setState(() {
+        _selectedIndex = index;
+      });
+    }
   }
 
   void updateDate(DateTime changedDate) {
@@ -33,7 +35,6 @@ class _BasePageState extends State<BasePage> {
   }
 
   void goToTracker () {
-    print('updated');
     setState(() {
       _selectedIndex = 0;
     });
@@ -60,71 +61,38 @@ class _BasePageState extends State<BasePage> {
     }
   }
 
-  Widget navBar () {
-    if (selectedDate == todaysDate) {
-      return Scaffold(
-        body: getPage(_selectedIndex),
-        bottomNavigationBar: BottomNavigationBar(
-            showUnselectedLabels: true,
-            unselectedItemColor: Colors.white,
-            selectedItemColor: Colors.blue,
-            currentIndex: _selectedIndex,
-            onTap: navigateBottomBar,
-            items: [
-              BottomNavigationBarItem(
-                  backgroundColor: Colors.black,
-                  icon: Icon(Icons.list),
-                  label: 'Tracker'
-              ),
-              BottomNavigationBarItem(
-                  icon: Icon(Icons.settings),
-                  label: 'Preferences'
-              ),
-              BottomNavigationBarItem(
-                  icon: Icon(Icons.run_circle),
-                  label: 'Exercise'
-              ),
-              BottomNavigationBarItem(
-                  icon: Icon(Icons.food_bank),
-                  label: 'Food'
-              ),
-            ]
-        ),
-      );
-    } else {
-      return Scaffold(
-        body: TrackerPage(updateDate: updateDate, selectedDate: selectedDate),
-        bottomNavigationBar: BottomNavigationBar(
-            showUnselectedLabels: true,
-            unselectedItemColor: Colors.grey[800],
-            selectedItemColor: Colors.blue,
-            currentIndex: 0,
-            items: [
-              BottomNavigationBarItem(
-                  backgroundColor: Colors.black,
-                  icon: Icon(Icons.list),
-                  label: 'Tracker'
-              ),
-              BottomNavigationBarItem(
-                  icon: Icon(Icons.settings),
-                  label: 'Preferences'
-              ),
-              BottomNavigationBarItem(
-                  icon: Icon(Icons.run_circle),
-                  label: 'Exercise'
-              ),
-              BottomNavigationBarItem(
-                  icon: Icon(Icons.food_bank),
-                  label: 'Food'
-              ),
-            ]
-        ),
-      );
-    }
-  }
+  final List<BottomNavigationBarItem> pageLabels = [
+    BottomNavigationBarItem(
+        backgroundColor: Colors.black,
+        icon: Icon(Icons.list),
+        label: 'Tracker'
+    ),
+    BottomNavigationBarItem(
+        icon: Icon(Icons.settings),
+        label: 'Preferences'
+    ),
+    BottomNavigationBarItem(
+        icon: Icon(Icons.run_circle),
+        label: 'Exercise'
+    ),
+    BottomNavigationBarItem(
+        icon: Icon(Icons.food_bank),
+        label: 'Food'
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    return navBar();
+    return Scaffold(
+      body: getPage(_selectedIndex),
+      bottomNavigationBar: BottomNavigationBar(
+          showUnselectedLabels: true,
+          unselectedItemColor: selectedDate == todaysDate ? Colors.white : Colors.grey[800],
+          selectedItemColor: Colors.blue,
+          currentIndex: _selectedIndex,
+          onTap: navigateBottomBar,
+          items: pageLabels
+      ),
+    );
   }
 }
