@@ -1,5 +1,6 @@
 import 'package:caloreasy/components/exercises.dart';
 import 'package:caloreasy/components/grouped_foods.dart';
+import 'package:caloreasy/components/tracker_view_selector.dart';
 import 'package:caloreasy/database/local_database.dart';
 import 'package:flutter/material.dart';
 import 'package:openfoodfacts/openfoodfacts.dart';
@@ -206,85 +207,9 @@ class _TrackerPageState extends State<TrackerPage> {
 
             Divider(height: 1, thickness: 1, color: Colors.grey[800],),
 
-            // TODO: notification testing
-            // Container(
-            //   color: Colors.grey,
-            //   child: Row(
-            //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            //     children: [
-            //       MaterialButton(
-            //         color: Colors.white,
-            //         textColor: Colors.black,
-            //         onPressed: () => NotiService().showNotification(title: 'Title', body: 'Body'),
-            //         child: Text('TEST: Notif'),
-            //       ),
-            //       Row(
-            //         children: [
-            //           Text('Notifs Off'),
-            //           Switch(
-            //             value: notificationOn,
-            //             onChanged: (value) {
-            //               setState(() {
-            //                 notificationOn = value;
-            //               });
-            //               if (notificationOn == true) {
-            //                 AndroidAlarmManager.periodic(const Duration(days: 1), 0, () => NotiService.scheduledNotification(),
-            //                     startAt: todaysDate.copyWith(hour: 17), allowWhileIdle: true, wakeup: true, rescheduleOnReboot: true)
-            //                     .then((value) => print('Alarm Timer Started = $value'));
-            //               } else {
-            //                 AndroidAlarmManager.cancel(0).then((value) => print('Alarm Timer Canceled = $value'));
-            //               }
-            //             },
-            //           ),
-            //           Text('Notifs on'),
-            //         ],
-            //       ),
-            //     ],
-            //   ),
-            // ),
-
-            Container(
-              color: Colors.black,
-              child:
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Expanded(
-                      child: MaterialButton(
-                        // (selected == 'food') ? blue : white
-                          textColor: (tabSelection == 'food') ? Colors.blue : Colors.white,
-                          height: 60,
-                          onPressed: () => setState(() {
-                            tabSelection = 'food';
-                          }),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text('Food'),
-                              Icon(Icons.food_bank)
-                            ],
-                          ),
-                      )
-                  ),
-                  Expanded(
-                      child: MaterialButton(
-                        textColor: (tabSelection == 'exercise') ? Colors.blue : Colors.white,
-                        height: 60,
-                        onPressed: () => setState(() {
-                          tabSelection = 'exercise';
-                        }),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text('Exercises'),
-                            Icon(Icons.run_circle)
-                          ],
-                        ),
-                      )
-                  )
-                ],
-              ),
-            ),
+            TrackerViewSelector(
+                tabSelection: tabSelection,
+                updateTabSelection: (updatedSelection) => setState(() {tabSelection = updatedSelection;})),
 
             Divider(height: 1, thickness: 1, color: Colors.grey[800],),
 
