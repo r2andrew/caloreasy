@@ -67,7 +67,7 @@ class _TrackerPageState extends State<TrackerPage> {
             Divider(height: 1, thickness: 1, color: Colors.grey[800],),
 
             tabSelection == 'food' ?
-              GroupedFoods(date: widget.selectedDate, deleteFunction: deleteFood) :
+              GroupedFoods(selectedDate: widget.selectedDate, deleteFunction: deleteFood) :
               Exercises(selectedDate: widget.selectedDate.toString(), deleteExercise: deleteExercise,)
           ],
         ),

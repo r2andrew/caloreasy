@@ -85,6 +85,7 @@ class _AddFoodPageState extends State<AddFoodPage> {
         await OpenFoodAPIClient.searchProducts(user, configuration);
     setState(() {
       for (var i = 0; i < (result.products?.length ?? 0); i++) {
+        // TODO: only add if name, data not empty
         returnedProducts.add(result.products?[i]);
       }
       loading = false;

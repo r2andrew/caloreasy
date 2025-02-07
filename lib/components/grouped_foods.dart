@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 
 class GroupedFoods extends StatefulWidget {
 
-  final DateTime date;
+  final DateTime selectedDate;
   final Function deleteFunction;
 
   const GroupedFoods({
     super.key,
-    required this.date,
+    required this.selectedDate,
     required this.deleteFunction
   });
 
@@ -30,20 +30,52 @@ class _GroupedFoodsState extends State<GroupedFoods> {
   }
 
   Widget oneGroup (String time) {
-    if (db.getFoodEntriesForDate(widget.date.toString())[time] == null) {
+
+    IconData icon;
+
+    switch (time) {
+      case 'Afternoon' : icon = Icons.cloud;
+      case 'Evening' : icon = Icons.shield_moon;
+      default : icon = Icons.sunny;
+    }
+    if (db.getFoodEntriesForDate(widget.selectedDate.toString())[time] == null) {
       return Container();
     }
     return Column(
         children: [
-          Text(time),
+          Row(
+            children: [
+              Expanded(child: Container(
+                  color: Colors.black,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(icon, color: Colors.grey[400],),
+                        Text('\t$time', style: TextStyle(color: Colors.grey[400]),)
+                      ],
+                    ),
+                  )
+              )),
+            ],
+          ),
+          Divider(height: 1, thickness: 1, color: Colors.grey[800],),
+
           ListView.builder(
               shrinkWrap: true,
-              itemCount: db.getFoodEntriesForDate(widget.date.toString())[time]?.length ?? 0,
+              itemCount: db.getFoodEntriesForDate(widget.selectedDate.toString())[time]?.length ?? 0,
               itemBuilder: (context, index) {
-                var food = db.getFoodEntriesForDate(widget.date.toString())[time]![index];
-                return SavedFoodTile(
-                  food: food,
-                  deleteFunction: (context) => deleteFood(food.stores),
+                var food = db.getFoodEntriesForDate(widget.selectedDate.toString())[time]![index];
+                return Column(
+                  children: [
+                    SavedFoodTile(
+                      food: food,
+                      deleteFunction: (context) => deleteFood(food.stores),
+                      selectedDate: widget.selectedDate,
+                    ),
+                    Divider(height: 1, thickness: 1, color: Colors.black,),
+                  ],
                 );
               }
           )

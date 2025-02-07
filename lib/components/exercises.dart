@@ -16,6 +16,10 @@ class Exercises extends StatelessWidget {
 
   LocalDatabase db = LocalDatabase();
 
+  String todaysDate = DateTime.now()
+      .copyWith(hour: 0, minute: 0, second: 0, millisecond: 0, microsecond: 0)
+      .toString();
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -31,7 +35,7 @@ class Exercises extends StatelessWidget {
               child: Column(
                 children: [
                   Slidable(
-                    endActionPane: ActionPane(
+                  endActionPane: selectedDate == todaysDate ? ActionPane(
                         motion: StretchMotion(),
                         children: [
                           SlidableAction(
@@ -40,7 +44,7 @@ class Exercises extends StatelessWidget {
                             backgroundColor: Colors.red,
                           )
                         ]
-                    ),
+                    ) : null,
                     child: Padding(
                       padding: const EdgeInsets.all(10.0),
                       child: Row(
@@ -62,8 +66,8 @@ class Exercises extends StatelessWidget {
                           ),
                           Row(
                             children: [
-                              Icon(Icons.fireplace),
-                              Text(' ${db.getExerciseEntriesForDate(selectedDate)
+                              Icon(Icons.energy_savings_leaf),
+                              Text(' -${db.getExerciseEntriesForDate(selectedDate)
                                 [index].calBurned.toString()}')
                             ],
                           ),
