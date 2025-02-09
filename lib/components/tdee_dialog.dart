@@ -44,11 +44,19 @@ class _TDEEDialogState extends State<TDEEDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      shape: ContinuousRectangleBorder(),
       content: SizedBox(
         height: 400,
         child: Column(
           children: [
-            Text('TDEE Calculator'),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text('TDEE Calculator',
+                style: TextStyle(
+                  fontSize: 20,
+                  color: Colors.grey[400]),
+              ),
+            ),
 
             TextField(
               keyboardType: TextInputType.number,
@@ -56,7 +64,12 @@ class _TDEEDialogState extends State<TDEEDialog> {
                 FilteringTextInputFormatter.digitsOnly
               ],
               decoration: InputDecoration(
-                  border: OutlineInputBorder(),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(0))
+                  ),
+                  hintStyle: TextStyle(
+                      color: Colors.white.withAlpha(150)
+                  ),
                   hintText: 'Weight in KG'
               ),
               controller: _weightController,
@@ -67,7 +80,12 @@ class _TDEEDialogState extends State<TDEEDialog> {
                 FilteringTextInputFormatter.digitsOnly
               ],
               decoration: InputDecoration(
-                  border: OutlineInputBorder(),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(0))
+                  ),
+                  hintStyle: TextStyle(
+                      color: Colors.white.withAlpha(150)
+                  ),
                   hintText: 'Height in CM'
               ),
               controller: _heightController,
@@ -78,7 +96,12 @@ class _TDEEDialogState extends State<TDEEDialog> {
                 FilteringTextInputFormatter.digitsOnly
               ],
               decoration: InputDecoration(
-                  border: OutlineInputBorder(),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(0))
+                  ),
+                  hintStyle: TextStyle(
+                      color: Colors.white.withAlpha(150)
+                  ),
                   hintText: 'Age'
               ),
               controller: _ageController,
@@ -157,11 +180,14 @@ class _TDEEDialogState extends State<TDEEDialog> {
                 }
             ),
 
-            MaterialButton(
-              color: Colors.white,
-              textColor: Colors.black,
-              onPressed: () => submit(),
-              child: Text('Save'),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: MaterialButton(
+                color: Colors.grey[800],
+                textColor: Colors.white,
+                onPressed: () => submit(),
+                child: Text('Save'),
+              ),
             )
           ],
         ),
