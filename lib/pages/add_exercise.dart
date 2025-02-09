@@ -32,56 +32,80 @@ class _AddExercisePageState extends State<AddExercisePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Add Exercise'),
+        title: Center(child: Text('Add Exercise')),
         backgroundColor: Colors.black,
       ),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
 
-              DropdownButton(
-                  hint: Text(exercise),
-                  value: exercise,
-                  items: [
-                    DropdownMenuItem(
-                        value: 'RUN',
-                        child: Text('Run')
+              Row(
+                children: [
+                  SizedBox(
+                    width: 300,
+                    child: SliderTheme(
+                      data: SliderThemeData(
+                        valueIndicatorColor: Colors.blue,
+                        valueIndicatorTextStyle: TextStyle(color: Colors.white),
+                        activeTrackColor: Colors.blue,
+                        thumbColor: Colors.blue
+                      ),
+                      child: Slider(
+                        value: minutes,
+                        max: 60,
+                        divisions: 12,
+                        label: minutes.round().toString(),
+                        onChanged: (double value) {
+                          setState(() {
+                            minutes = value;
+                          });
+                        },
+                      ),
                     ),
-                    DropdownMenuItem(
-                        value: 'WALK',
-                        child: Text('Walk')
+                  ),
+                  Text('mins', style: TextStyle(color: Colors.grey[400]),)
+                ],
+              ),
+
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    DropdownButton(
+                        hint: Text(exercise),
+                        value: exercise,
+                        items: [
+                          DropdownMenuItem(
+                              value: 'RUN',
+                              child: Text('Run')
+                          ),
+                          DropdownMenuItem(
+                              value: 'WALK',
+                              child: Text('Walk')
+                          ),
+                          DropdownMenuItem(
+                              value: 'SWIM',
+                              child: Text('Swim')
+                          ),
+                        ],
+                        onChanged: (chosenExercise) {
+                          setState(() {
+                            exercise = chosenExercise!;
+                          });
+                        }
                     ),
-                    DropdownMenuItem(
-                        value: 'SWIM',
-                        child: Text('Swim')
+                    MaterialButton(
+                        color: Colors.grey[800],
+                        textColor: Colors.white,
+                        onPressed: submit,
+                        child: Text('Add'),
                     ),
                   ],
-                  onChanged: (chosenExercise) {
-                    setState(() {
-                      exercise = chosenExercise!;
-                    });
-                  }
-              ),
-
-              Slider(
-                value: minutes,
-                max: 60,
-                divisions: 12,
-                label: minutes.round().toString(),
-                onChanged: (double value) {
-                  setState(() {
-                    minutes = value;
-                  });
-                },
-              ),
-
-              MaterialButton(
-                  color: Colors.white,
-                  onPressed: submit,
-                  textColor: Colors.black,
-                  child: Text('Add'),
+                ),
               ),
             ],
           ),
