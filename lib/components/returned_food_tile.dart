@@ -1,18 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:openfoodfacts/openfoodfacts.dart';
 
 class ReturnedFoodTile extends StatefulWidget {
 
   final Product food;
-  final Function saveFunction;
-  final String time;
+  final bool selected;
 
   const ReturnedFoodTile({
     super.key,
     required this.food,
-    required this.saveFunction,
-    required this.time
+    required this.selected
   });
 
   @override
@@ -21,8 +18,6 @@ class ReturnedFoodTile extends StatefulWidget {
 
 class _ReturnedFoodTileState extends State<ReturnedFoodTile> {
 
-  final _TextController = TextEditingController();
-
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -30,7 +25,7 @@ class _ReturnedFoodTileState extends State<ReturnedFoodTile> {
       child: Container(
           padding: EdgeInsets.all(10),
           decoration: BoxDecoration(
-              color: Colors.grey[800],
+              color: widget.selected ? Colors.blue : Colors.grey[800],
               borderRadius: BorderRadius.circular(20)
           ),
           child: Column(
@@ -38,48 +33,19 @@ class _ReturnedFoodTileState extends State<ReturnedFoodTile> {
               Row(
                 children: [
 
-                  Text("Product Name:  ${
-                      (widget.food.productName == null) ? ''
-                              : (widget.food.productName!.length <= 20) ? widget.food.productName!
-                              : '${widget.food.productName!.substring(0, 20)}...'
-                        }"
-                        + '\nCalories per 100g : '
-                          '${widget.food.nutriments!.getComputedKJ(PerSize.oneHundredGrams)}'
+                  Center(
+                    child: Text("Name:  ${
+                        (widget.food.productName == null) ? ''
+                                : (widget.food.productName!.length <= 30) ? widget.food.productName!
+                                : '${widget.food.productName!.substring(0, 30)}...'
+                          }"
+                          + '\nCalories / 100g : '
+                            '${widget.food.nutriments!.getComputedKJ(PerSize.oneHundredGrams)?.toInt()}'
+                    ),
                   ),
 
                 ],
               ),
-              Row(
-                children: [
-
-                  Expanded(
-                    child: TextField(
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly
-                      ],
-                      controller: _TextController,
-                      decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                          hintText: 'Num Grams'
-                      ),
-                    ),
-                  ),
-
-                  MaterialButton(
-                    color: Colors.grey[800],
-                    onPressed: () => {
-                      widget.saveFunction(
-                          widget.food,
-                          int.parse(_TextController.text),
-                          widget.time
-                      )
-                    },
-                    child: Text('Add'),
-                  ),
-
-                ],
-              )
             ],
           ),
         ),

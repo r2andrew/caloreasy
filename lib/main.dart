@@ -42,7 +42,10 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Caloreasy',
       theme: ThemeData(
-        colorScheme: ColorScheme.highContrastDark(),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.blue,
+          brightness: Brightness.dark
+        ),
         useMaterial3: true,
       ),
       home: BasePage(),
