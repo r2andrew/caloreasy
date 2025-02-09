@@ -40,6 +40,7 @@ class _TDEEDialogState extends State<TDEEDialog> {
     }
   }
 
+  // TODO: redesign
   @override
   Widget build(BuildContext context) {
     return AlertDialog(

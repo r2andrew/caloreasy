@@ -1,6 +1,5 @@
 import 'package:caloreasy/helpers/noti_service.dart';
 import 'package:caloreasy/pages/base_page.dart';
-import 'package:caloreasy/pages/tracker.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/adapters.dart';
@@ -14,6 +13,8 @@ void main() async {
   final _foodEntriesBox = await Hive.openBox('userFoodEntries');
   final _preferencesBox = await Hive.openBox('userPreferences');
   final _exerciseEntriesBox = await Hive.openBox('userExerciseEntries');
+  final _notificationsBox = await Hive.openBox('notifications');
+
 
   // debug
   // _foodEntriesBox.clear();
