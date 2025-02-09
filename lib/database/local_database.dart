@@ -14,7 +14,10 @@ class LocalDatabase {
 
   // Map
   // date : {}
+  // TODO: rename to goals in light of notifications
   final _preferencesBox = Hive.box('userPreferences');
+
+  final _notificationsBox = Hive.box('notifications');
 
   // Map
   // date : exercise[]
@@ -193,4 +196,18 @@ class LocalDatabase {
 
     _preferencesBox.put(date, updatedPreferences);
   }
+
+  /*
+  * PREFERENCES METHODS
+  * */
+
+  bool getNotificationsStatus() {
+    return _notificationsBox.get('status') ?? false;
+  }
+
+  void toggleNotificationsStatus() {
+    bool status = _notificationsBox.get('status') ?? false;
+    _notificationsBox.put('status', !status);
+  }
+
 }

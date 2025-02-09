@@ -1,16 +1,21 @@
+import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
+import 'package:caloreasy/components/sub_heading.dart';
 import 'package:caloreasy/database/local_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../components/tdee_dialog.dart';
+import '../helpers/noti_service.dart';
 
 class PreferencesPage extends StatefulWidget {
 
   String selectedDate;
+  Function goToTracker;
 
   PreferencesPage({
     super.key,
-    required this.selectedDate
+    required this.selectedDate,
+    required this.goToTracker
   });
 
   @override
@@ -19,12 +24,16 @@ class PreferencesPage extends StatefulWidget {
 
 class _PreferencesPageState extends State<PreferencesPage> {
 
+  DateTime todaysDate = DateTime.now()
+      .copyWith(hour: 0, minute: 0, second: 0, millisecond: 0, microsecond: 0);
+
   LocalDatabase db = LocalDatabase();
 
   final _caloriesController = TextEditingController();
   final _proteinController = TextEditingController();
   final _carbsController = TextEditingController();
   final _fatController = TextEditingController();
+  late bool notificationsOn;
 
   @override
   void initState() {
@@ -36,9 +45,10 @@ class _PreferencesPageState extends State<PreferencesPage> {
     _carbsController.text = preferences['carbs'].toString();
     _fatController.text = preferences['fat'].toString();
 
+    notificationsOn = db.getNotificationsStatus();
+
     super.initState();
   }
-
 
   void openTDEECalcDialog () {
     showDialog(context: context, builder: (context) {
@@ -87,82 +97,141 @@ class _PreferencesPageState extends State<PreferencesPage> {
           };
           db.updatePreferences(widget.selectedDate, updatedPreferences);
 
-          Navigator.of(context).pop();
+          widget.goToTracker();
         }
+  }
+
+  Widget macroInput (String macro, TextEditingController controller) {
+    return Center(
+      child: SizedBox(
+        width: 200,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Expanded(child: Text(macro)),
+            SizedBox(
+              width: 100,
+              child: TextField(
+                textAlign: TextAlign.center,
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly
+                ],
+                decoration: InputDecoration(
+                    border: UnderlineInputBorder(),
+                    hintText: macro
+                ),
+                controller: controller,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Preferences'),
+        title: Center(child: Text('Preferences')),
         backgroundColor: Colors.black,
-      ),
-      floatingActionButton: FloatingActionButton(
-          backgroundColor: Colors.white,
-          onPressed: openTDEECalcDialog,
-          child: Icon(Icons.calculate),
       ),
       body: Column(
         children: [
 
-          Text('Calories'),
-          TextField(
-            keyboardType: TextInputType.number,
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly
-            ],
-            decoration: InputDecoration(
-              border: OutlineInputBorder(),
-              hintText: 'Calories'
+          Divider(height: 1, thickness: 1, color: Colors.grey[800],),
+
+          // notification selector
+          SubHeading(text: 'Macro Goals'),
+
+          Divider(height: 1, thickness: 1, color: Colors.grey[800],),
+
+          macroInput('Calories', _caloriesController),
+          macroInput('Protein', _proteinController),
+          macroInput('Carbs', _carbsController),
+          macroInput('Fat', _fatController),
+
+          Padding(
+            padding: const EdgeInsets.only(top: 12.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: MaterialButton(
+                    color: Colors.grey[800],
+                    textColor: Colors.white,
+                    onPressed: openTDEECalcDialog,
+                    child: Row(
+                      children: [
+                        Icon(Icons.calculate),
+                        Text('Goal Calculator')
+                      ],
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: MaterialButton(
+                      color: Colors.grey[800],
+                      textColor: Colors.white,
+                      onPressed: () => submit(),
+                      child: Row(
+                        children: [
+                          Icon(Icons.save),
+                          Text('Save'),
+                        ],
+                      ),
+                  ),
+                ),
+              ],
             ),
-            controller: _caloriesController,
           ),
 
-          Text('Protein'),
-          TextField(
-            keyboardType: TextInputType.number,
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly
-            ],
-            decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: 'Protein in g'
-            ),
-            controller: _proteinController,
-          ),
+          Divider(height: 1, thickness: 1, color: Colors.grey[800],),
+          SubHeading(text: 'Notifications'),
+          Divider(height: 1, thickness: 1, color: Colors.grey[800],),
 
-          Text('Carbs'),
-          TextField(
-            keyboardType: TextInputType.number,
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly
-            ],
-            decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: 'Carbs in g'
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('Off'),
+                    Switch(
+                      trackColor: WidgetStateProperty<Color?>.fromMap(<WidgetStatesConstraint, Color>{
+                        WidgetState.selected: Colors.blue
+                      }),
+                      thumbColor: const WidgetStatePropertyAll<Color>(Colors.white),
+                      value: notificationsOn,
+                      onChanged: (value) {
+                        setState(() {
+                          db.toggleNotificationsStatus();
+                          notificationsOn = db.getNotificationsStatus();
+                        });
+                        if (notificationsOn == true) {
+                          AndroidAlarmManager.periodic(const Duration(days: 1), 0, () => NotiService.scheduledNotification(),
+                              startAt: todaysDate.copyWith(hour: 17), allowWhileIdle: true, wakeup: true, rescheduleOnReboot: true)
+                              .then((value) => print('Alarm Timer Started = $value'));
+                        } else {
+                          AndroidAlarmManager.cancel(0).then((value) => print('Alarm Timer Canceled = $value'));
+                        }
+                      },
+                    ),
+                    Text('On')
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    'Send a reminder notification if no entries by 5pm',
+                    style: TextStyle(color: Colors.grey[400])),
+                )
+              ],
             ),
-            controller: _carbsController,
-          ),
-
-          Text('Fat'),
-          TextField(
-            keyboardType: TextInputType.number,
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly
-            ],
-            decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: 'Fat in g'
-            ),
-            controller: _fatController,
-          ),
-
-          MaterialButton(
-              color: Colors.white,
-              textColor: Colors.black,
-              onPressed: () => submit(),
-              child: Text('Save'),
           )
         ],
       ),

@@ -1,6 +1,8 @@
 import 'package:caloreasy/components/returned_food_tile.dart';
 import 'package:caloreasy/database/local_database.dart';
+import 'package:caloreasy/helpers/food_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:openfoodfacts/openfoodfacts.dart';
 
 class AddFoodPage extends StatefulWidget {
@@ -15,84 +17,55 @@ class AddFoodPage extends StatefulWidget {
 
 class _AddFoodPageState extends State<AddFoodPage> {
 
-  final _TextController = TextEditingController();
+  final _searchController = TextEditingController();
+  final _gramsController = TextEditingController();
 
   String selectedTime = 'Morning';
 
+  int selectedFoodIndex = -1;
+
   LocalDatabase db = LocalDatabase();
 
-  // OpenFoodAPI creds
-  final User? user = User(
-      userId: 'r2andrew',
-      password: 'caloreasy'
-  );
+  late FoodService foodService;
 
   List<Product?> returnedProducts = [];
   bool loading = false;
 
-  void getProductByBarcode(String barcode) async {
+  void saveFood () {
 
-    setState(() {
-      loading = true;
-      returnedProducts = [];
-    });
-
-    OpenFoodAPIConfiguration.userAgent = UserAgent(
-        name: 'caloreasy'
+    db.addFoodEntry(
+        widget.selectedDate,
+        returnedProducts[selectedFoodIndex]!,
+        int.parse(_gramsController.text),
+        selectedTime
     );
+  }
 
-    final ProductQueryConfiguration configuration = ProductQueryConfiguration(
-      barcode,
-      language: OpenFoodFactsLanguage.ENGLISH,
-      fields: [ProductField.ALL],
-      version: ProductQueryVersion.v3,
-    );
-    final ProductResultV3 result =
-          await OpenFoodAPIClient.getProductV3(configuration);
-
-    if (result.status == ProductResultV3.statusSuccess) {
+  // TODO: api error handling
+  // callback function for food service
+  void loadResults (bool loaded, [List<Product?>? products]) {
+    if (!loaded) {
       setState(() {
-        returnedProducts.add(result.product);
-        loading = false;
+        loading = true;
+        selectedFoodIndex = -1;
+        returnedProducts = [];
       });
     } else {
-      throw Exception('product not found');
+      setState(() {
+        returnedProducts = products!;
+        loading = false;
+      });
     }
   }
-
-  void getProductsBySearch(String searchTerm) async {
-
-    setState(() {
-      loading = true;
-      returnedProducts = [];
-    });
-
-    OpenFoodAPIConfiguration.userAgent = UserAgent(
-        name: 'caloreasy'
-    );
-
-    final ProductSearchQueryConfiguration configuration = ProductSearchQueryConfiguration(
-      parametersList: <Parameter>[
-        SearchTerms(terms: [searchTerm])
-      ],
-      version: ProductQueryVersion.v3,
-      fields: [
-        ProductField.NAME,
-        ProductField.NUTRIMENTS
-      ]
-    );
-    final SearchResult result =
-        await OpenFoodAPIClient.searchProducts(user, configuration);
-    setState(() {
-      for (var i = 0; i < (result.products?.length ?? 0); i++) {
-        returnedProducts.add(result.products?[i]);
-      }
-      loading = false;
-    });
+  
+  bool addValid () {
+    return (selectedFoodIndex >= 0 && _gramsController.text.isNotEmpty);
   }
 
-  void saveFood (Product food, int grams, String time) {
-    db.addFoodEntry(widget.selectedDate, food, grams, time);
+  @override
+  void initState() {
+    foodService = FoodService(loadResults);
+    super.initState();
   }
 
   @override
@@ -103,81 +76,127 @@ class _AddFoodPageState extends State<AddFoodPage> {
         backgroundColor: Colors.black,
       ),
 
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            TextField(
-              controller: _TextController,
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: 'Search'
-              ),
-            ),
-            DropdownButton(
-                hint: Text(selectedTime),
-                value: selectedTime,
-                items: [
-                  DropdownMenuItem(
-                      value: 'Morning',
-                      child: Text('Morning'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'Afternoon',
-                    child: Text('Afternoon'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'Evening',
-                    child: Text('Evening'),
-                  )
-                ],
-                onChanged: (time) {
-                  setState(() {
-                    selectedTime = time as String;
-                  });
-                }
-            ),
-            Padding(
+      body: Column(
+        children: [
+          Container(
+            color: Colors.grey[900],
+            child: Padding(
               padding: const EdgeInsets.all(8.0),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    MaterialButton(
-                        color: Colors.grey[800],
-                        onPressed: () => getProductByBarcode('0048151623426'),
-                        child: Text('Get Product Info by Barcode'),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  SizedBox(
+                    width: 200,
+                    child: TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(0))
+                        ),
+                        hintText: 'Search',
+                        hintStyle: TextStyle(color: Colors.grey[400])
+                      ),
                     ),
-                    MaterialButton(
-                      color: Colors.grey[800],
-                      onPressed: () => getProductsBySearch(_TextController.text ?? ''),
-                      child: Text('Get Product Info by Search'),
-                    ),
-                  ],
-                ),
+                  ),
+                  MaterialButton(
+                    color: Colors.grey[800],
+                    onPressed: () => foodService.getProductsBySearch(_searchController.text ?? ''),
+                    child: Text('Search'),
+                  ),
+                ],
               ),
             ),
-            Builder(
-                builder: (context) {
-                  if (loading == true) {
-                    return Center(child: CircularProgressIndicator());
-                  } else {
-                    return ListView.builder(
-                        shrinkWrap: true,
-                        physics: ScrollPhysics(),
-                        itemCount: returnedProducts.length,
-                        itemBuilder: (context, index) {
-                          return ReturnedFoodTile(
-                              food: returnedProducts[index]!,
-                              saveFunction: saveFood,
-                              time: selectedTime,
-                          );
-                        }
+          ),
+
+
+          loading == true ? Expanded(child: Container(
+              color: Colors.blue.withAlpha(50),
+              child: Center(child: CircularProgressIndicator(color: Colors.blue)))
+          )
+          : Expanded(
+            child: Container(
+              color: Colors.blue.withAlpha(50),
+              child: ListView.builder(
+                  itemCount: returnedProducts.length,
+                  itemBuilder: (context, index) {
+                    return GestureDetector(
+                      onTap: () => setState(() {
+                        selectedFoodIndex = index;
+                      }),
+                      child: ReturnedFoodTile(
+                        food: returnedProducts[index]!,
+                        selected: selectedFoodIndex == index
+                      ),
                     );
                   }
-                }
-            )
-          ],
-        ),
+              ),
+            ),
+          ),
+
+          Container(
+            color: Colors.grey[900],
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  
+                  SizedBox(
+                    width: 120,
+                    child: TextField(
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly
+                      ],
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(0))
+                        ),
+                        hintText: 'grams',
+                        hintStyle: TextStyle(color: Colors.grey[400]),
+                      ),
+                      controller: _gramsController,
+                      onChanged: (text) {
+                        // trigger a rebuild for the purposes of the add valid checker
+                        setState(() {});
+                      },
+                    ),
+                  ),
+
+                  DropdownButton(
+                      hint: Text(selectedTime),
+                      value: selectedTime,
+                      items: [
+                        DropdownMenuItem(
+                          value: 'Morning',
+                          child: Text('Morning'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Afternoon',
+                          child: Text('Afternoon'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Evening',
+                          child: Text('Evening'),
+                        )
+                      ],
+                      onChanged: (time) {
+                        setState(() {
+                          selectedTime = time as String;
+                        });
+                      }
+                  ),
+
+                  MaterialButton(
+                      color: Colors.blue,
+                      onPressed: addValid() ? () => saveFood() : () => (),
+                      child: addValid() ? Text('Add') : Icon(Icons.not_interested),
+                  )
+                ],
+              ),
+            ),
+          )
+        ],
       ),
     );
   }

@@ -1,5 +1,6 @@
 // credit: mitch koko
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import '../database/local_database.dart';
 
 class NotiService {
   final notificationsPlugin = FlutterLocalNotificationsPlugin();
@@ -46,5 +47,16 @@ class NotiService {
         body,
         notificationDetails()
     );
+  }
+  static void scheduledNotification() async {
+
+    NotiService().initNotification();
+
+    LocalDatabase db = LocalDatabase();
+
+    // if no entries for todays date (checked at 5pm), send notification
+    if (!db.foodEntriesToday(DateTime.now().toString())) {
+      NotiService().showNotification(title: 'Add Foods!', body: "Don't forget to track your calories today!");
+    }
   }
 }
