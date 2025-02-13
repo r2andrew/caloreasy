@@ -115,6 +115,48 @@ class LocalDatabase {
   String generateId() => String.fromCharCodes(Iterable.generate(
       24, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
 
+
+  Map calcNutrientsConsumedForDay(selectedDate) {
+
+    int caloriesConsumed = 0;
+    int caloriesBurned = 0;
+    int proteinConsumed = 0;
+    int carbsConsumed = 0;
+    int fatConsumed = 0;
+
+    var times = ['Morning', 'Afternoon', 'Evening'];
+
+    for (var time in times) {
+      var foodList = getFoodEntriesForDate(selectedDate)[time] ?? [];
+      for (var food in foodList) {
+        caloriesConsumed +=
+            (food.nutriments!.getComputedKJ(PerSize.oneHundredGrams) ?? 0 *
+                (int.parse(food.quantity!) / 100)).toInt();
+        proteinConsumed +=
+            (food.nutriments!.getValue(Nutrient.proteins, PerSize.oneHundredGrams) ?? 0 *
+                (int.parse(food.quantity!) / 100)).toInt();
+        carbsConsumed +=
+            (food.nutriments!.getValue(Nutrient.carbohydrates, PerSize.oneHundredGrams) ?? 0 *
+                (int.parse(food.quantity!) / 100)).toInt();
+        fatConsumed +=
+            (food.nutriments!.getValue(Nutrient.fat, PerSize.oneHundredGrams) ?? 0 *
+                (int.parse(food.quantity!) / 100)).toInt();
+      }
+    }
+    var exerciseList = getExerciseEntriesForDate(selectedDate);
+    for (var exercise in exerciseList) {
+      caloriesBurned += exercise.calBurned;
+    }
+
+    return {
+      'caloriesConsumed' : caloriesConsumed,
+      'caloriesBurned' : caloriesBurned,
+      'proteinConsumed' : proteinConsumed,
+      'carbsConsumed' : carbsConsumed,
+      'fatConsumed' : fatConsumed
+    };
+  }
+
   /*
   * EXERCISES METHODS
   * */

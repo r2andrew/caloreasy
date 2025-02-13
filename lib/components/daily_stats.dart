@@ -19,15 +19,20 @@ class _DailyStatsState extends State<DailyStats> {
 
   LocalDatabase db = LocalDatabase();
 
-  int caloriesConsumedToday = 0;
-  int caloriesBurnedToday = 0;
-  int proteinConsumedToday = 0;
-  int carbsConsumedToday = 0;
-  int fatConsumedToday = 0;
+  int caloriesConsumed = 0;
+  int caloriesBurned = 0;
+  int proteinConsumed = 0;
+  int carbsConsumed = 0;
+  int fatConsumed = 0;
 
   @override
   void initState() {
-    calcNutrientsConsumedToday();
+    Map nutrients = db.calcNutrientsConsumedForDay(widget.selectedDate);
+    caloriesConsumed = nutrients['caloriesConsumed'];
+    caloriesBurned = nutrients['caloriesBurned'];
+    proteinConsumed = nutrients['proteinConsumed'];
+    carbsConsumed = nutrients['carbsConsumed'];
+    fatConsumed = nutrients['fatConsumed'];
     super.initState();
   }
 
@@ -35,48 +40,12 @@ class _DailyStatsState extends State<DailyStats> {
   @override
   void didUpdateWidget(DailyStats oldWidget) {
     super.didUpdateWidget(oldWidget);
-    calcNutrientsConsumedToday();
-  }
-
-  void calcNutrientsConsumedToday() {
-
-    int caloriesConsumed = 0;
-    int caloriesBurned = 0;
-    int proteinConsumed = 0;
-    int carbsConsumed = 0;
-    int fatConsumed = 0;
-
-    var times = ['Morning', 'Afternoon', 'Evening'];
-
-    for (var time in times) {
-      var foodList = db.getFoodEntriesForDate(widget.selectedDate)[time] ?? [];
-      for (var food in foodList) {
-        caloriesConsumed +=
-            (food.nutriments!.getComputedKJ(PerSize.oneHundredGrams) ?? 0 *
-                (int.parse(food.quantity!) / 100)).toInt();
-        proteinConsumed +=
-            (food.nutriments!.getValue(Nutrient.proteins, PerSize.oneHundredGrams) ?? 0 *
-                (int.parse(food.quantity!) / 100)).toInt();
-        carbsConsumed +=
-            (food.nutriments!.getValue(Nutrient.carbohydrates, PerSize.oneHundredGrams) ?? 0 *
-                (int.parse(food.quantity!) / 100)).toInt();
-        fatConsumed +=
-            (food.nutriments!.getValue(Nutrient.fat, PerSize.oneHundredGrams) ?? 0 *
-                (int.parse(food.quantity!) / 100)).toInt();
-      }
-    }
-    var exerciseList = db.getExerciseEntriesForDate(widget.selectedDate);
-    for (var exercise in exerciseList) {
-      caloriesBurned += exercise.calBurned;
-    }
-
-    setState(() {
-      caloriesConsumedToday = caloriesConsumed;
-      caloriesBurnedToday = caloriesBurned;
-      proteinConsumedToday = proteinConsumed;
-      carbsConsumedToday = carbsConsumed;
-      fatConsumedToday = fatConsumed;
-    });
+    Map nutrients = db.calcNutrientsConsumedForDay(widget.selectedDate);
+    caloriesConsumed = nutrients['caloriesConsumed'];
+    caloriesBurned = nutrients['caloriesBurned'];
+    proteinConsumed = nutrients['proteinConsumed'];
+    carbsConsumed = nutrients['carbsConsumed'];
+    fatConsumed = nutrients['fatConsumed'];
   }
 
   List calcNutrientDelta(int nutrientConsumedToday, String nutrient) {
@@ -130,16 +99,16 @@ class _DailyStatsState extends State<DailyStats> {
                 child: LinearProgressIndicator(
                   //Here you pass the percentage
                   value: calcNutrientDelta(
-                      caloriesConsumedToday - caloriesBurnedToday, 'calories')[0],
+                      caloriesConsumed - caloriesBurned, 'calories')[0],
                   color: calcNutrientDelta(
-                      caloriesConsumedToday - caloriesBurnedToday, 'calories')[1],
+                      caloriesConsumed - caloriesBurned, 'calories')[1],
                   backgroundColor: Colors.blue.withAlpha(50),
                 ),
               ),
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 10.0),
-                child: Text('${caloriesConsumedToday} '
-                    '(-${caloriesBurnedToday}) / '
+                child: Text('${caloriesConsumed} '
+                    '(-${caloriesBurned}) / '
                     '${db.getPreferences(widget.selectedDate)['calories']} '
                     'Calories'),
               )
@@ -154,9 +123,9 @@ class _DailyStatsState extends State<DailyStats> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                macroProgressIndicator(proteinConsumedToday, 'protein'),
-                macroProgressIndicator(carbsConsumedToday, 'carbs'),
-                macroProgressIndicator(fatConsumedToday, 'fat')
+                macroProgressIndicator(proteinConsumed, 'protein'),
+                macroProgressIndicator(carbsConsumed, 'carbs'),
+                macroProgressIndicator(fatConsumed, 'fat')
               ],
             ),
           ),

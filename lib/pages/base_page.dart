@@ -1,5 +1,6 @@
 import 'package:caloreasy/pages/add_exercise.dart';
 import 'package:caloreasy/pages/add_food.dart';
+import 'package:caloreasy/pages/graphs.dart';
 import 'package:caloreasy/pages/preferences.dart';
 import 'package:caloreasy/pages/tracker.dart';
 import 'package:flutter/material.dart';
@@ -57,6 +58,8 @@ class _BasePageState extends State<BasePage> {
         return AddFoodPage(
             selectedDate: selectedDate.toString()
         );
+      case 4:
+        return GraphsPage();
       default:
         return TrackerPage(updateDate: updateDate, selectedDate: selectedDate);
     }
@@ -80,6 +83,10 @@ class _BasePageState extends State<BasePage> {
         icon: Icon(Icons.food_bank),
         label: 'Food'
     ),
+    BottomNavigationBarItem(
+        icon: Icon(Icons.auto_graph),
+        label: 'Graphs'
+    )
   ];
 
   @override
