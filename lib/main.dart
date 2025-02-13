@@ -14,7 +14,7 @@ void main() async {
   final _preferencesBox = await Hive.openBox('userPreferences');
   final _exerciseEntriesBox = await Hive.openBox('userExerciseEntries');
   final _notificationsBox = await Hive.openBox('notifications');
-
+  final _weightBox = await Hive.openBox('userWeightEntries');
 
   // debug
   // _foodEntriesBox.clear();

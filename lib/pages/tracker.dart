@@ -1,7 +1,7 @@
 import 'package:caloreasy/components/daily_stats.dart';
 import 'package:caloreasy/components/exercises.dart';
 import 'package:caloreasy/components/grouped_foods.dart';
-import 'package:caloreasy/components/tracker_view_selector.dart';
+import 'package:caloreasy/components/two_tab_selector.dart';
 import 'package:caloreasy/database/local_database.dart';
 import 'package:caloreasy/pages/add_exercise.dart';
 import 'package:caloreasy/pages/add_food.dart';
@@ -25,7 +25,7 @@ class _TrackerPageState extends State<TrackerPage> {
 
   LocalDatabase db = LocalDatabase();
 
-  String tabSelection = 'food';
+  bool firstTabSelected = true;
 
   bool notificationOn = false;
 
@@ -59,7 +59,7 @@ class _TrackerPageState extends State<TrackerPage> {
           onPressed: () => {
             Navigator.push(context, MaterialPageRoute(
               builder: (context) =>
-              tabSelection == 'food' ?
+              firstTabSelected ?
                 AddFoodPage(selectedDate: selectedDate.toString())
                 : AddExercisePage(selectedDate: selectedDate.toString())
             )).then(((_) => setState(() {})))
@@ -79,13 +79,16 @@ class _TrackerPageState extends State<TrackerPage> {
 
             Divider(height: 1, thickness: 1, color: Colors.grey[800],),
 
-            TrackerViewSelector(
-                tabSelection: tabSelection,
-                updateTabSelection: (updatedSelection) => setState(() {tabSelection = updatedSelection;})),
+            TwoTabSelector(
+                firstTabSelected: firstTabSelected,
+                updateTabSelection: (updatedSelection) => setState(() {firstTabSelected = updatedSelection;}),
+                tabNames: ['Food', 'Exercises'],
+                icons: [Icon(Icons.food_bank), Icon(Icons.run_circle)],
+            ),
 
             Divider(height: 1, thickness: 1, color: Colors.grey[800],),
 
-            tabSelection == 'food' ?
+            firstTabSelected ?
               GroupedFoods(selectedDate: selectedDate, deleteFunction: deleteFood) :
               Exercises(selectedDate: selectedDate.toString(), deleteExercise: deleteExercise,)
           ],

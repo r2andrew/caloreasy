@@ -23,6 +23,9 @@ class LocalDatabase {
   // date : exercise[]
   final _exerciseEntriesBox = Hive.box('userExerciseEntries');
 
+  // double
+  final _weightEntriesBox = Hive.box('userWeightEntries');
+
   /*
   * FOOD METHODS
   * */
@@ -250,6 +253,18 @@ class LocalDatabase {
   void toggleNotificationsStatus() {
     bool status = _notificationsBox.get('status') ?? false;
     _notificationsBox.put('status', !status);
+  }
+
+  /*
+  * WEIGHT METHODS
+  * */
+
+  double getWeightForDate(String date) {
+    return _weightEntriesBox.get(date, defaultValue: 0.0);
+  }
+
+  void storeWeightForDate(String date, double weight) {
+    _weightEntriesBox.put(date, weight);
   }
 
 }

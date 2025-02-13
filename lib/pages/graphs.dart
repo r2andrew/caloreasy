@@ -1,24 +1,34 @@
+import 'package:caloreasy/components/date_selector.dart';
+import 'package:caloreasy/components/two_tab_selector.dart';
+import 'package:caloreasy/components/weight_dialog.dart';
 import 'package:caloreasy/database/local_database.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
-class GraphsPage extends StatelessWidget {
+class GraphsPage extends StatefulWidget {
   
   GraphsPage({super.key});
 
+  @override
+  State<GraphsPage> createState() => _GraphsPageState();
+}
+
+class _GraphsPageState extends State<GraphsPage> {
+
+  bool firstTabSelected = true;
+
   LocalDatabase db = LocalDatabase();
 
-  DateTime today = DateTime.now()
+  DateTime selectedDate = DateTime.now()
       .copyWith(hour: 0, minute: 0, second: 0, millisecond: 0, microsecond: 0);
 
   List getCalorieDataForPastWeek() {
 
-    int modifier = 7;
+    int modifier = 6;
     List data = [];
 
     for(var i = 0 ; i < 7; i++) {
-      DateTime date = today.subtract(Duration(days: modifier));
-
+      DateTime date = selectedDate.subtract(Duration(days: modifier));
 
       Map nutrientsForDay = db.calcNutrientsConsumedForDay(date.toString());
       int caloriesForDay = nutrientsForDay['caloriesConsumed'] - nutrientsForDay['caloriesBurned'];
@@ -30,6 +40,20 @@ class GraphsPage extends StatelessWidget {
       modifier--;
     }
 
+    return data;
+  }
+
+  List getWeightDataForPastWeek() {
+
+    int modifier = 6;
+    List data = [];
+
+    for(var i = 0 ; i < 7; i++) {
+      DateTime date = selectedDate.subtract(Duration(days: modifier));
+
+      data.add([db.getWeightForDate(date.toString()), date.weekday]);
+      modifier--;
+    }
     return data;
   }
 
@@ -49,7 +73,7 @@ class GraphsPage extends StatelessWidget {
     return Colors.green;
   }
 
-  List<BarChartGroupData> getBars() {
+  List<BarChartGroupData> getCalorieGraphBars() {
 
     List<BarChartGroupData> data = [];
 
@@ -74,6 +98,107 @@ class GraphsPage extends StatelessWidget {
     return data;
   }
 
+  List<FlSpot> getWeightGraphPoints() {
+    List<FlSpot> data = [];
+
+    List weightData = getWeightDataForPastWeek();
+    for (int i = 0; i < 7; i++) {
+      data.add(FlSpot(i.toDouble(), weightData[i][0]));
+    }
+    return data;
+  }
+
+  void updateDate(String direction) {
+    setState(() {
+      direction == 'forward' ? selectedDate = selectedDate.add(Duration(days: 1)) :
+      selectedDate = selectedDate.subtract(Duration(days: 1));
+    });
+  }
+
+  Widget calorieDeltaGraph() {
+    return BarChart(
+      BarChartData(
+          titlesData: FlTitlesData(
+              leftTitles: AxisTitles(
+                  axisNameWidget: Text('Calories')
+              ),
+              topTitles: AxisTitles(
+                  axisNameWidget: null
+              ),
+              bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                      showTitles: true,
+                      getTitlesWidget: (double value, TitleMeta meta) {
+                        return SideTitleWidget(
+                            meta: meta,
+                            child: switch(value) {
+                              0 => Text('Su'),
+                              1 => Text('Mo'),
+                              2 => Text('Tu'),
+                              3 => Text('We'),
+                              4 => Text('Th'),
+                              5 => Text('Fr'),
+                              _ => Text('Sa')
+                            }
+                        );
+                      }
+                  )
+              )
+          ),
+          barGroups: getCalorieGraphBars()
+      ),
+    );
+  }
+
+  Widget weightGraph() {
+    return LineChart(
+      LineChartData(
+        titlesData: FlTitlesData(
+            leftTitles: AxisTitles(
+                axisNameWidget: Text('Weight in KG')
+            ),
+            topTitles: AxisTitles(
+                axisNameWidget: null
+            ),
+            bottomTitles: AxisTitles(
+                sideTitles: SideTitles(
+                    showTitles: true,
+                    getTitlesWidget: (double value, TitleMeta meta) {
+                      var mostRecentDataPointOffset = getWeightDataForPastWeek().last[1];
+                      value = value + mostRecentDataPointOffset + 1;
+                      return SideTitleWidget(
+                          meta: meta,
+                          child: switch(value) {
+                            0 => Text('Su'),
+                            1 => Text('Mo'),
+                            2 => Text('Tu'),
+                            3 => Text('We'),
+                            4 => Text('Th'),
+                            5 => Text('Fr'),
+                            6 => Text('Sa'),
+                            7 => Text('Su'),
+                            8 => Text('Mo'),
+                            9 => Text('Tu'),
+                            10 => Text('We'),
+                            11 => Text('Th'),
+                            12 => Text('Fr'),
+                            13 => Text('Sa'),
+                            _ => Text('Su')
+                          }
+                      );
+                    }
+                )
+            )
+        ),
+        lineBarsData: [
+          LineChartBarData(
+            spots: getWeightGraphPoints(),
+          )
+        ]
+      )
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -81,38 +206,37 @@ class GraphsPage extends StatelessWidget {
         title: Center(child: Text('Graphs')),
         backgroundColor: Colors.black,
       ),
-      body: BarChart(
-        BarChartData(
-          titlesData: FlTitlesData(
-            leftTitles: AxisTitles(
-              axisNameWidget: Text('Calories')
-            ),
-            topTitles: AxisTitles(
-              axisNameWidget: Text('Calorie delta for past week')
-            ),
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                getTitlesWidget: (double value, TitleMeta meta) {
-                  return SideTitleWidget(
-                    meta: meta,
-                    child: switch(value) {
-                      0 => Text('Mo'),
-                      1 => Text('Tu'),
-                      2 => Text('We'),
-                      3 => Text('Th'),
-                      4 => Text('Fr'),
-                      5 => Text('Sa'),
-                      _ => Text('Su')
-                    }
-                  );
-                }
-              )
-            )
-          ),
-          barGroups: getBars()
-        ),
+      floatingActionButton: !firstTabSelected ?
+        FloatingActionButton(
+          shape: ContinuousRectangleBorder(),
+          onPressed: () async {
+            await showDialog(context: context, builder: (context) {
+              return WeightDialog(selectedDate: selectedDate);
+            });
+            setState(() {});
+          },
+          child: Icon(Icons.add),
+        ) : null,
+      body: Column(
+        children: [
 
+          Divider(height: 1, thickness: 1, color: Colors.grey[800],),
+
+          DateSelector(selectedDate: selectedDate, updateDate: updateDate),
+
+          Divider(height: 1, thickness: 1, color: Colors.grey[800],),
+
+          TwoTabSelector(
+              firstTabSelected: firstTabSelected,
+              updateTabSelection: (updatedSelection) => setState(() {firstTabSelected = updatedSelection;}),
+              tabNames: ['Calorie Delta', 'Weight'],
+              icons: [Icon(Icons.food_bank), Icon(Icons.monitor_weight)]
+          ),
+
+          firstTabSelected ?
+            Expanded(child: calorieDeltaGraph())
+            : Expanded(child: weightGraph())
+        ],
       ),
     );
   }

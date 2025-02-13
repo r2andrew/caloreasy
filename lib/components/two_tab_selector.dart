@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 
-class TrackerViewSelector extends StatelessWidget {
+class TwoTabSelector extends StatelessWidget {
 
-  String tabSelection;
+  bool firstTabSelected;
   Function updateTabSelection;
+  List<String> tabNames;
+  List<Icon> icons;
 
-  TrackerViewSelector({
+  TwoTabSelector({
     super.key,
-    required this.tabSelection,
-    required this.updateTabSelection
+    required this.firstTabSelected,
+    required this.updateTabSelection,
+    required this.tabNames,
+    required this.icons
   });
 
   @override
@@ -21,29 +25,28 @@ class TrackerViewSelector extends StatelessWidget {
         children: [
           Expanded(
               child: MaterialButton(
-                // (selected == 'food') ? blue : white
-                textColor: (tabSelection == 'food') ? Colors.blue : Colors.white,
+                textColor: firstTabSelected ? Colors.blue : Colors.white,
                 height: 60,
-                onPressed: () => updateTabSelection('food'),
+                onPressed: () => updateTabSelection(true),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text('Food'),
-                    Icon(Icons.food_bank)
+                    Text(tabNames[0]),
+                    icons[0]
                   ],
                 ),
               )
           ),
           Expanded(
               child: MaterialButton(
-                textColor: (tabSelection == 'exercise') ? Colors.blue : Colors.white,
+                textColor: !firstTabSelected ? Colors.blue : Colors.white,
                 height: 60,
-                onPressed: () => updateTabSelection('exercise'),
+                onPressed: () => updateTabSelection(false),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text('Exercises'),
-                    Icon(Icons.run_circle)
+                    Text(tabNames[1]),
+                    icons[1]
                   ],
                 ),
               )
