@@ -9,12 +9,10 @@ import '../helpers/noti_service.dart';
 
 class PreferencesPage extends StatefulWidget {
 
-  String selectedDate;
   Function goToTracker;
 
   PreferencesPage({
     super.key,
-    required this.selectedDate,
     required this.goToTracker
   });
 
@@ -38,7 +36,7 @@ class _PreferencesPageState extends State<PreferencesPage> {
   @override
   void initState() {
 
-    var preferences = db.getPreferences(widget.selectedDate);
+    var preferences = db.getPreferences(todaysDate.toString());
 
     _caloriesController.text = preferences['calories'].toString();
     _proteinController.text = preferences['protein'].toString();
@@ -95,7 +93,7 @@ class _PreferencesPageState extends State<PreferencesPage> {
             'carbs': int.parse(_carbsController.text),
             'fat': int.parse(_fatController.text),
           };
-          db.updatePreferences(widget.selectedDate, updatedPreferences);
+          db.updatePreferences(todaysDate.toString(), updatedPreferences);
 
           widget.goToTracker();
         }

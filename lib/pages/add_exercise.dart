@@ -4,12 +4,10 @@ import 'package:flutter/material.dart';
 class AddExercisePage extends StatefulWidget {
 
   String selectedDate;
-  Function goToTracker;
 
   AddExercisePage({
     super.key,
     required this.selectedDate,
-    required this.goToTracker
   });
 
   @override
@@ -25,7 +23,7 @@ class _AddExercisePageState extends State<AddExercisePage> {
 
   void submit() {
       db.addExerciseEntry(widget.selectedDate, exercise, minutes.toInt());
-      widget.goToTracker();
+      Navigator.of(context).pop();
   }
 
   @override

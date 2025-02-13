@@ -44,44 +44,23 @@ class _BasePageState extends State<BasePage> {
 
   Widget getPage (int index) {
     switch (index) {
+      case 0:
+        return TrackerPage();
       case 1:
-        return PreferencesPage(
-            selectedDate: selectedDate.toString(),
-            goToTracker: goToTracker
-        );
-      case 2:
-        return AddExercisePage(
-            selectedDate: selectedDate.toString(),
-            goToTracker: goToTracker
-        );
-      case 3:
-        return AddFoodPage(
-            selectedDate: selectedDate.toString()
-        );
-      case 4:
-        return GraphsPage();
+        return PreferencesPage(goToTracker: goToTracker);
       default:
-        return TrackerPage(updateDate: updateDate, selectedDate: selectedDate);
+        return GraphsPage();
     }
   }
 
   final List<BottomNavigationBarItem> pageLabels = [
     BottomNavigationBarItem(
-        backgroundColor: Colors.black,
         icon: Icon(Icons.list),
         label: 'Tracker'
     ),
     BottomNavigationBarItem(
         icon: Icon(Icons.settings),
         label: 'Preferences'
-    ),
-    BottomNavigationBarItem(
-        icon: Icon(Icons.run_circle),
-        label: 'Exercise'
-    ),
-    BottomNavigationBarItem(
-        icon: Icon(Icons.food_bank),
-        label: 'Food'
     ),
     BottomNavigationBarItem(
         icon: Icon(Icons.auto_graph),
@@ -94,6 +73,7 @@ class _BasePageState extends State<BasePage> {
     return Scaffold(
       body: getPage(_selectedIndex),
       bottomNavigationBar: BottomNavigationBar(
+          backgroundColor: Colors.black,
           showUnselectedLabels: true,
           unselectedItemColor: selectedDate == todaysDate ? Colors.white : Colors.grey[800],
           selectedItemColor: Colors.blue,

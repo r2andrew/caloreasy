@@ -3,18 +3,15 @@ import 'package:caloreasy/components/exercises.dart';
 import 'package:caloreasy/components/grouped_foods.dart';
 import 'package:caloreasy/components/tracker_view_selector.dart';
 import 'package:caloreasy/database/local_database.dart';
+import 'package:caloreasy/pages/add_exercise.dart';
+import 'package:caloreasy/pages/add_food.dart';
 import 'package:flutter/material.dart';
 import '../components/date_selector.dart';
 
 class TrackerPage extends StatefulWidget {
 
-  Function updateDate;
-  DateTime selectedDate;
-
   TrackerPage({
     super.key,
-    required this.updateDate,
-    required this.selectedDate
   });
 
   @override
@@ -23,21 +20,31 @@ class TrackerPage extends StatefulWidget {
 
 class _TrackerPageState extends State<TrackerPage> {
 
+  DateTime selectedDate = DateTime.now()
+      .copyWith(hour: 0, minute: 0, second: 0, millisecond: 0, microsecond: 0);
+
   LocalDatabase db = LocalDatabase();
 
   String tabSelection = 'food';
 
   bool notificationOn = false;
 
+  void updateDate(String direction) {
+    setState(() {
+      direction == 'forward' ? selectedDate = selectedDate.add(Duration(days: 1)) :
+      selectedDate = selectedDate.subtract(Duration(days: 1));
+    });
+  }
+
   void deleteFood (id) {
     setState(() {
-      db.deleteFoodEntry(widget.selectedDate.toString(), id);
+      db.deleteFoodEntry(selectedDate.toString(), id);
     });
   }
   
   void deleteExercise(index) {
     setState(() {
-      db.deleteExerciseEntry(widget.selectedDate.toString(), index);
+      db.deleteExerciseEntry(selectedDate.toString(), index);
     });
   }
 
@@ -48,15 +55,27 @@ class _TrackerPageState extends State<TrackerPage> {
         title: Center(child: Text('Tracker')),
         backgroundColor: Colors.black,
       ),
+      floatingActionButton: FloatingActionButton(
+          onPressed: () => {
+            Navigator.push(context, MaterialPageRoute(
+              builder: (context) =>
+              tabSelection == 'food' ?
+                AddFoodPage(selectedDate: selectedDate.toString())
+                : AddExercisePage(selectedDate: selectedDate.toString())
+            )).then(((_) => setState(() {})))
+          },
+          shape: ContinuousRectangleBorder(),
+          child: Icon(Icons.add),
+      ),
       body: SingleChildScrollView(
         child: Column(
           children: [
 
-            DailyStats(selectedDate: widget.selectedDate.toString()),
+            DailyStats(selectedDate: selectedDate.toString()),
 
             Divider(height: 1, thickness: 1, color: Colors.grey[800],),
 
-            DateSelector(selectedDate: widget.selectedDate, updateDate: widget.updateDate),
+            DateSelector(selectedDate: selectedDate, updateDate: updateDate),
 
             Divider(height: 1, thickness: 1, color: Colors.grey[800],),
 
@@ -67,8 +86,8 @@ class _TrackerPageState extends State<TrackerPage> {
             Divider(height: 1, thickness: 1, color: Colors.grey[800],),
 
             tabSelection == 'food' ?
-              GroupedFoods(selectedDate: widget.selectedDate, deleteFunction: deleteFood) :
-              Exercises(selectedDate: widget.selectedDate.toString(), deleteExercise: deleteExercise,)
+              GroupedFoods(selectedDate: selectedDate, deleteFunction: deleteFood) :
+              Exercises(selectedDate: selectedDate.toString(), deleteExercise: deleteExercise,)
           ],
         ),
       ),
