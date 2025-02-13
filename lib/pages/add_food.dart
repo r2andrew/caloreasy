@@ -1,8 +1,10 @@
 import 'package:caloreasy/components/returned_food_tile.dart';
 import 'package:caloreasy/database/local_database.dart';
 import 'package:caloreasy/helpers/food_service.dart';
+import 'package:caloreasy/pages/barcode_scanner.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:openfoodfacts/openfoodfacts.dart';
 
 class AddFoodPage extends StatefulWidget {
@@ -16,6 +18,8 @@ class AddFoodPage extends StatefulWidget {
 }
 
 class _AddFoodPageState extends State<AddFoodPage> {
+  
+  String barcode = 'Scan Something!';
 
   final _searchController = TextEditingController();
   final _gramsController = TextEditingController();
@@ -98,10 +102,29 @@ class _AddFoodPageState extends State<AddFoodPage> {
                       ),
                     ),
                   ),
-                  MaterialButton(
-                    color: Colors.grey[800],
-                    onPressed: () => foodService.getProductsBySearch(_searchController.text ?? ''),
-                    child: Text('Search'),
+                  Column(
+                    children: [
+                      MaterialButton(
+                        color: Colors.grey[800],
+                        onPressed: () => foodService.getProductsBySearch(_searchController.text ?? ''),
+                        child: Text('Search'),
+                      ),
+                      MaterialButton(
+                          color: Colors.grey[800],
+                          onPressed: () async {
+                            final scannedBarcode =
+                              await Navigator.of(context).push<Barcode>(
+                                MaterialPageRoute(
+                                    builder: (context) => const BarcodeScanner(),
+                                )
+                              );
+                            if (scannedBarcode != null && scannedBarcode.displayValue != null) {
+                              foodService.getProductByBarcode(scannedBarcode.displayValue!);
+                            }
+                          },
+                        child: Text('Scan'),
+                      )
+                    ],
                   ),
                 ],
               ),

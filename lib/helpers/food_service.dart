@@ -10,8 +10,6 @@ class FoodService {
       password: 'caloreasy'
   );
 
-
-
   FoodService(void Function(bool loaded, [List<Product?> products]) this.loadResults);
 
   void getProductsBySearch(String searchTerm) async {
@@ -50,7 +48,6 @@ class FoodService {
     loadResults(true, returnedProducts);
   }
 
-  // TODO: unused
   void getProductByBarcode(String barcode) async {
 
     loadResults(false);

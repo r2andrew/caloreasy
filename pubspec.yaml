@@ -43,6 +43,7 @@ dependencies:
   flutter_local_notifications: ^18.0.1
   android_alarm_manager_plus: ^4.0.6
   fl_chart: ^0.70.2
+  mobile_scanner: ^6.0.6
 
 dev_dependencies:
   flutter_test:
