@@ -1,5 +1,4 @@
-import 'package:caloreasy/pages/add_exercise.dart';
-import 'package:caloreasy/pages/add_food.dart';
+import 'package:caloreasy/pages/coachpilot.dart';
 import 'package:caloreasy/pages/graphs.dart';
 import 'package:caloreasy/pages/preferences.dart';
 import 'package:caloreasy/pages/tracker.dart';
@@ -48,13 +47,16 @@ class _BasePageState extends State<BasePage> {
         return TrackerPage();
       case 1:
         return PreferencesPage(goToTracker: goToTracker);
-      default:
+      case 2:
         return GraphsPage();
+      default:
+        return Coachpilot();
     }
   }
 
   final List<BottomNavigationBarItem> pageLabels = [
     BottomNavigationBarItem(
+        backgroundColor: Colors.black,
         icon: Icon(Icons.list),
         label: 'Tracker'
     ),
@@ -65,6 +67,10 @@ class _BasePageState extends State<BasePage> {
     BottomNavigationBarItem(
         icon: Icon(Icons.auto_graph),
         label: 'Graphs'
+    ),
+    BottomNavigationBarItem(
+        icon: Icon(Icons.science),
+        label: 'CoachPilot'
     )
   ];
 
@@ -73,13 +79,13 @@ class _BasePageState extends State<BasePage> {
     return Scaffold(
       body: getPage(_selectedIndex),
       bottomNavigationBar: BottomNavigationBar(
-          backgroundColor: Colors.black,
-          showUnselectedLabels: true,
-          unselectedItemColor: selectedDate == todaysDate ? Colors.white : Colors.grey[800],
-          selectedItemColor: Colors.blue,
-          currentIndex: _selectedIndex,
-          onTap: navigateBottomBar,
-          items: pageLabels
+        backgroundColor: Colors.black,
+        showUnselectedLabels: true,
+        unselectedItemColor: Colors.white,
+        selectedItemColor: Colors.blue,
+        currentIndex: _selectedIndex,
+        onTap: navigateBottomBar,
+        items: pageLabels
       ),
     );
   }
