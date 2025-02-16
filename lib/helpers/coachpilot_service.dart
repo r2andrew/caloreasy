@@ -12,7 +12,8 @@ class CoachpilotService {
 
   loadResults(false);
 
-  var response = await http.post(
+  try {
+    var response = await http.post(
       Uri.parse('http://192.168.0.130:5000/coachpilot/'),
       headers: {
         "Content-Type" : "application/x-www-form-urlencoded"
@@ -20,7 +21,12 @@ class CoachpilotService {
       encoding: Encoding.getByName('utf-8'),
       body: {'question' : question }
     );
+
     var data = jsonDecode(response.body);
     loadResults(true, data['result']);
+
+    } catch (e) {
+    loadResults(true, 'API error occurred: $e');
+    }
   }
 }
