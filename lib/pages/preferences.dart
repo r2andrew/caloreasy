@@ -135,103 +135,106 @@ class _PreferencesPageState extends State<PreferencesPage> {
         title: Center(child: Text('Preferences')),
         backgroundColor: Colors.black,
       ),
-      body: Column(
-        children: [
+      body: SingleChildScrollView(
+        physics: ClampingScrollPhysics(parent: NeverScrollableScrollPhysics()),
+        child: Column(
+          children: [
 
-          Divider(height: 1, thickness: 1, color: Colors.grey[800],),
+            Divider(height: 1, thickness: 1, color: Colors.grey[800],),
 
-          // notification selector
-          SubHeading(text: 'Macro Goals'),
+            // notification selector
+            SubHeading(text: 'Macro Goals'),
 
-          Divider(height: 1, thickness: 1, color: Colors.grey[800],),
+            Divider(height: 1, thickness: 1, color: Colors.grey[800],),
 
-          macroInput('Calories', _caloriesController),
-          macroInput('Protein', _proteinController),
-          macroInput('Carbs', _carbsController),
-          macroInput('Fat', _fatController),
+            macroInput('Calories', _caloriesController),
+            macroInput('Protein', _proteinController),
+            macroInput('Carbs', _carbsController),
+            macroInput('Fat', _fatController),
 
-          Padding(
-            padding: const EdgeInsets.only(top: 12.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: MaterialButton(
-                    color: Colors.grey[800],
-                    textColor: Colors.white,
-                    onPressed: openTDEECalcDialog,
-                    child: Row(
-                      children: [
-                        Icon(Icons.calculate),
-                        Text('Goal Calculator')
-                      ],
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: MaterialButton(
+            Padding(
+              padding: const EdgeInsets.only(top: 12.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: MaterialButton(
                       color: Colors.grey[800],
                       textColor: Colors.white,
-                      onPressed: () => submit(),
+                      onPressed: openTDEECalcDialog,
                       child: Row(
                         children: [
-                          Icon(Icons.save),
-                          Text('Save'),
+                          Icon(Icons.calculate),
+                          Text('Goal Calculator')
                         ],
                       ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          Divider(height: 1, thickness: 1, color: Colors.grey[800],),
-          SubHeading(text: 'Notifications'),
-          Divider(height: 1, thickness: 1, color: Colors.grey[800],),
-
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text('Off'),
-                    Switch(
-                      trackColor: WidgetStateProperty<Color?>.fromMap(<WidgetStatesConstraint, Color>{
-                        WidgetState.selected: Colors.blue
-                      }),
-                      thumbColor: const WidgetStatePropertyAll<Color>(Colors.white),
-                      value: notificationsOn,
-                      onChanged: (value) {
-                        setState(() {
-                          db.toggleNotificationsStatus();
-                          notificationsOn = db.getNotificationsStatus();
-                        });
-                        if (notificationsOn == true) {
-                          AndroidAlarmManager.periodic(const Duration(days: 1), 0, () => NotiService.scheduledNotification(),
-                              startAt: todaysDate.copyWith(hour: 17), allowWhileIdle: true, wakeup: true, rescheduleOnReboot: true)
-                              .then((value) => print('Alarm Timer Started = $value'));
-                        } else {
-                          AndroidAlarmManager.cancel(0).then((value) => print('Alarm Timer Canceled = $value'));
-                        }
-                      },
                     ),
-                    Text('On')
-                  ],
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    'Send a reminder notification if no entries by 5pm',
-                    style: TextStyle(color: Colors.grey[400])),
-                )
-              ],
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: MaterialButton(
+                        color: Colors.grey[800],
+                        textColor: Colors.white,
+                        onPressed: () => submit(),
+                        child: Row(
+                          children: [
+                            Icon(Icons.save),
+                            Text('Save'),
+                          ],
+                        ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          )
-        ],
+
+            Divider(height: 1, thickness: 1, color: Colors.grey[800],),
+            SubHeading(text: 'Notifications'),
+            Divider(height: 1, thickness: 1, color: Colors.grey[800],),
+
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('Off'),
+                      Switch(
+                        trackColor: WidgetStateProperty<Color?>.fromMap(<WidgetStatesConstraint, Color>{
+                          WidgetState.selected: Colors.blue
+                        }),
+                        thumbColor: const WidgetStatePropertyAll<Color>(Colors.white),
+                        value: notificationsOn,
+                        onChanged: (value) {
+                          setState(() {
+                            db.toggleNotificationsStatus();
+                            notificationsOn = db.getNotificationsStatus();
+                          });
+                          if (notificationsOn == true) {
+                            AndroidAlarmManager.periodic(const Duration(days: 1), 0, () => NotiService.scheduledNotification(),
+                                startAt: todaysDate.copyWith(hour: 17), allowWhileIdle: true, wakeup: true, rescheduleOnReboot: true)
+                                .then((value) => print('Alarm Timer Started = $value'));
+                          } else {
+                            AndroidAlarmManager.cancel(0).then((value) => print('Alarm Timer Canceled = $value'));
+                          }
+                        },
+                      ),
+                      Text('On')
+                    ],
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      'Send a reminder notification if no entries by 5pm',
+                      style: TextStyle(color: Colors.grey[400])),
+                  )
+                ],
+              ),
+            )
+          ],
+        ),
       ),
     );
   }
