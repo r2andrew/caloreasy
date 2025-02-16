@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:caloreasy/components/returned_food_tile.dart';
 import 'package:caloreasy/database/local_database.dart';
 import 'package:caloreasy/helpers/food_service.dart';
@@ -27,6 +28,9 @@ class _AddFoodPageState extends State<AddFoodPage> {
   String selectedTime = 'Morning';
 
   int selectedFoodIndex = -1;
+
+  Color addButtonColor = Colors.blue;
+  String addButtonText = 'Add';
 
   LocalDatabase db = LocalDatabase();
 
@@ -104,25 +108,47 @@ class _AddFoodPageState extends State<AddFoodPage> {
                   ),
                   Column(
                     children: [
-                      MaterialButton(
-                        color: Colors.grey[800],
-                        onPressed: () => foodService.getProductsBySearch(_searchController.text ?? ''),
-                        child: Text('Search'),
-                      ),
-                      MaterialButton(
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: MaterialButton(
                           color: Colors.grey[800],
-                          onPressed: () async {
-                            final scannedBarcode =
-                              await Navigator.of(context).push<Barcode>(
-                                MaterialPageRoute(
-                                    builder: (context) => const BarcodeScanner(),
-                                )
-                              );
-                            if (scannedBarcode != null && scannedBarcode.displayValue != null) {
-                              foodService.getProductByBarcode(scannedBarcode.displayValue!);
-                            }
-                          },
-                        child: Text('Scan'),
+                          onPressed: () => foodService.getProductsBySearch(_searchController.text ?? ''),
+                          child: Row(
+                            children: [
+                              Text('Search'),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Icon(Icons.search),
+                              )
+                            ],
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: MaterialButton(
+                            color: Colors.grey[800],
+                            onPressed: () async {
+                              final scannedBarcode =
+                                await Navigator.of(context).push<Barcode>(
+                                  MaterialPageRoute(
+                                      builder: (context) => const BarcodeScanner(),
+                                  )
+                                );
+                              if (scannedBarcode != null && scannedBarcode.displayValue != null) {
+                                foodService.getProductByBarcode(scannedBarcode.displayValue!);
+                              }
+                            },
+                          child: Row(
+                            children: [
+                              Text('Scan'),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Icon(Icons.barcode_reader),
+                              )
+                            ],
+                          ),
+                        ),
                       )
                     ],
                   ),
@@ -211,9 +237,20 @@ class _AddFoodPageState extends State<AddFoodPage> {
                   ),
 
                   MaterialButton(
-                      color: Colors.blue,
-                      onPressed: addValid() ? () => saveFood() : () => (),
-                      child: addValid() ? Text('Add') : Icon(Icons.not_interested),
+                      color: addButtonColor,
+                      onPressed: () async {
+                        if (addValid()) {
+                          saveFood();
+                          setState(() {addButtonColor=Colors.green;addButtonText='Added';});
+                          Timer(Duration(seconds: 1), () {
+                            setState(() {
+                              addButtonColor = Colors.blue;
+                              addButtonText = 'Add';
+                            });
+                          });
+                        }
+                      },
+                      child: addValid() ? Text(addButtonText) : Icon(Icons.not_interested),
                   )
                 ],
               ),
