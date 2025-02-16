@@ -10,11 +10,11 @@ class FoodService {
       password: 'caloreasy'
   );
 
-  FoodService(void Function(bool loaded, [List<Product?> products]) this.loadResults);
+  FoodService(void Function(bool loaded, String error, [List<Product?> products]) this.loadResults);
 
   void getProductsBySearch(String searchTerm) async {
 
-    loadResults(false);
+    loadResults(false, '');
 
     OpenFoodAPIConfiguration.userAgent = UserAgent(
         name: 'caloreasy'
@@ -38,19 +38,22 @@ class FoodService {
 
     List<Product?> returnedProducts = [];
 
-    for (var i = 0; i < (result.products?.length ?? 0); i++) {
+    if (result.count! > 0) {
+      for (var i = 0; i < (result.products?.length ?? 0); i++) {
       // ignore results with no name
-      if (result.products?[i].productName != '') {
-        returnedProducts.add(result.products?[i]);
+        if (result.products?[i].productName != '') {
+          returnedProducts.add(result.products?[i]);
+        }
       }
+      loadResults(true, '', returnedProducts);
+    } else {
+      loadResults(true, 'No items found');
     }
-
-    loadResults(true, returnedProducts);
   }
 
   void getProductByBarcode(String barcode) async {
 
-    loadResults(false);
+    loadResults(false, '');
 
     OpenFoodAPIConfiguration.userAgent = UserAgent(
       name: 'caloreasy'
@@ -70,9 +73,9 @@ class FoodService {
     await OpenFoodAPIClient.getProductV3(configuration);
 
     if (result.status == ProductResultV3.statusSuccess) {
-      loadResults(true, [result.product]);
+      loadResults(true, '', [result.product]);
     } else {
-      throw Exception('product not found');
+      loadResults(true, 'No items found');
     }
   }
 }

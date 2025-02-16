@@ -38,6 +38,7 @@ class _AddFoodPageState extends State<AddFoodPage> {
 
   List<Product?> returnedProducts = [];
   bool loading = false;
+  String apiError = '';
 
   void saveFood () {
 
@@ -48,19 +49,24 @@ class _AddFoodPageState extends State<AddFoodPage> {
         selectedTime
     );
   }
-
   // TODO: api error handling
   // callback function for food service
-  void loadResults (bool loaded, [List<Product?>? products]) {
+  void loadResults (bool loaded, String error, [List<Product?>? products]) {
     if (!loaded) {
       setState(() {
         loading = true;
         selectedFoodIndex = -1;
         returnedProducts = [];
+        apiError = '';
+      });
+    } else if (error.isEmpty) {
+      setState(() {
+        returnedProducts = products!;
+        loading = false;
       });
     } else {
       setState(() {
-        returnedProducts = products!;
+        apiError = error;
         loading = false;
       });
     }
@@ -165,7 +171,7 @@ class _AddFoodPageState extends State<AddFoodPage> {
           : Expanded(
             child: Container(
               color: Colors.blue.withAlpha(50),
-              child: ListView.builder(
+              child: apiError.isEmpty ? ListView.builder(
                   itemCount: returnedProducts.length,
                   itemBuilder: (context, index) {
                     return GestureDetector(
@@ -178,7 +184,11 @@ class _AddFoodPageState extends State<AddFoodPage> {
                       ),
                     );
                   }
-              ),
+              ) : Row(
+                children: [
+                  Expanded(child: Center(child: Text(apiError))),
+                ],
+              )
             ),
           ),
 
