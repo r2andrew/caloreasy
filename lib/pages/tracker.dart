@@ -22,6 +22,8 @@ class _TrackerPageState extends State<TrackerPage> {
 
   DateTime selectedDate = DateTime.now()
       .copyWith(hour: 0, minute: 0, second: 0, millisecond: 0, microsecond: 0);
+  DateTime todaysDate = DateTime.now()
+      .copyWith(hour: 0, minute: 0, second: 0, millisecond: 0, microsecond: 0);
 
   LocalDatabase db = LocalDatabase();
 
@@ -55,7 +57,7 @@ class _TrackerPageState extends State<TrackerPage> {
         title: Center(child: Text('Tracker')),
         backgroundColor: Colors.black,
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: selectedDate == todaysDate ? FloatingActionButton(
           onPressed: () => {
             Navigator.push(context, MaterialPageRoute(
               builder: (context) =>
@@ -66,7 +68,7 @@ class _TrackerPageState extends State<TrackerPage> {
           },
           shape: ContinuousRectangleBorder(),
           child: Icon(Icons.add),
-      ),
+      ) : null,
       body: SingleChildScrollView(
         child: Column(
           children: [
