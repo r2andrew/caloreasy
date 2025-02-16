@@ -21,17 +21,8 @@ class _BasePageState extends State<BasePage> {
       .copyWith(hour: 0, minute: 0, second: 0, millisecond: 0, microsecond: 0);
 
   void navigateBottomBar (int index) {
-    if (selectedDate == todaysDate) {
-      setState(() {
-        _selectedIndex = index;
-      });
-    }
-  }
-
-  void updateDate(String direction) {
     setState(() {
-      direction == 'forward' ? selectedDate = selectedDate.add(Duration(days: 1)) :
-          selectedDate = selectedDate.subtract(Duration(days: 1));
+      _selectedIndex = index;
     });
   }
 
@@ -57,8 +48,9 @@ class _BasePageState extends State<BasePage> {
   final List<BottomNavigationBarItem> pageLabels = [
     BottomNavigationBarItem(
         backgroundColor: Colors.black,
-        icon: Icon(Icons.list),
-        label: 'Tracker'
+        icon: Icon(Icons.list, key: Key('test1'),),
+        label: 'Tracker',
+        key: Key('test'),
     ),
     BottomNavigationBarItem(
         icon: Icon(Icons.settings),
