@@ -133,16 +133,16 @@ class LocalDatabase {
       var foodList = getFoodEntriesForDate(selectedDate)[time] ?? [];
       for (var food in foodList) {
         caloriesConsumed +=
-            (food.nutriments!.getComputedKJ(PerSize.oneHundredGrams) ?? 0 *
+            ((food.nutriments!.getComputedKJ(PerSize.oneHundredGrams) ?? 0) *
                 (int.parse(food.quantity!) / 100)).toInt();
         proteinConsumed +=
-            (food.nutriments!.getValue(Nutrient.proteins, PerSize.oneHundredGrams) ?? 0 *
+            ((food.nutriments!.getValue(Nutrient.proteins, PerSize.oneHundredGrams) ?? 0) *
                 (int.parse(food.quantity!) / 100)).toInt();
         carbsConsumed +=
-            (food.nutriments!.getValue(Nutrient.carbohydrates, PerSize.oneHundredGrams) ?? 0 *
+            ((food.nutriments!.getValue(Nutrient.carbohydrates, PerSize.oneHundredGrams) ?? 0) *
                 (int.parse(food.quantity!) / 100)).toInt();
         fatConsumed +=
-            (food.nutriments!.getValue(Nutrient.fat, PerSize.oneHundredGrams) ?? 0 *
+            ((food.nutriments!.getValue(Nutrient.fat, PerSize.oneHundredGrams) ?? 0) *
                 (int.parse(food.quantity!) / 100)).toInt();
       }
     }

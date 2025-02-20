@@ -253,10 +253,12 @@ class _AddFoodPageState extends State<AddFoodPage> {
                           saveFood();
                           setState(() {addButtonColor=Colors.green;addButtonText='Added';});
                           Timer(Duration(seconds: 1), () {
-                            setState(() {
-                              addButtonColor = Colors.blue;
-                              addButtonText = 'Add';
-                            });
+                            if (this.mounted) {
+                              setState(() {
+                                addButtonColor = Colors.blue;
+                                addButtonText = 'Add';
+                              });
+                            }
                           });
                         }
                       },
