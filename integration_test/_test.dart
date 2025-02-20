@@ -1,14 +1,25 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:caloreasy/components/returned_food_tile.dart';
+import 'package:caloreasy/helpers/customFoodAPIClient.dart';
+import 'package:caloreasy/pages/add_food.dart';
+import 'package:caloreasy/pages/coachpilot.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:caloreasy/main.dart';
+import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
+import 'package:openfoodfacts/openfoodfacts.dart';
+import 'package:http/http.dart' as http;
+import '_test.mocks.dart';
+import 'data.dart';
 
+@GenerateMocks([customFoodAPIClient, http.Client])
 void main() async {
 
   await Hive.initFlutter();
@@ -29,6 +40,13 @@ void main() async {
   if (Platform.isAndroid) await AndroidAlarmManager.initialize();
 
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+
+  DateTime selectedDate = DateTime.now()
+      .copyWith(hour: 0,
+      minute: 0,
+      second: 0,
+      millisecond: 0,
+      microsecond: 0);
 
   group('basic nav', () {
 
@@ -61,13 +79,16 @@ void main() async {
 
   group('add food', () {
 
-    testWidgets('Search and add food', (
+    testWidgets('search and add food', (
         tester,
         ) async {
-      await tester.pumpWidget(const MyApp());
+      MockcustomFoodAPIClient mockcustomFoodAPIClient = MockcustomFoodAPIClient();
+      when(mockcustomFoodAPIClient.searchProducts(any)).thenAnswer((_) async =>
+          SearchResult.fromJson(successResultTyped[0]));
 
-      await tester.tap(find.byType(FloatingActionButton));
-      await tester.pumpAndSettle();
+      await tester.pumpWidget(MaterialApp(
+        home: AddFoodPage(selectedDate: selectedDate.toString(), client: mockcustomFoodAPIClient,),
+      ));
 
       var searchField = find.ancestor(
           of: find.text('Search'),
@@ -90,7 +111,7 @@ void main() async {
       await tester.pumpAndSettle();
 
       await tester.tap(find.byIcon(Icons.search));
-      await tester.pump(Duration(seconds: 15));
+      await tester.pump(Duration(seconds: 1));
 
       await tester.tap(find.byType(ReturnedFoodTile).first);
 
@@ -100,7 +121,61 @@ void main() async {
 
       await tester.pumpAndSettle();
 
+      verify(mockcustomFoodAPIClient.searchProducts('pringles')).called(1);
+
       expect(find.text('Added'), findsOneWidget);
+    });
+
+    testWidgets('handle api error', (
+        tester,
+        ) async {
+      MockcustomFoodAPIClient mockcustomFoodAPIClient = MockcustomFoodAPIClient();
+      when(mockcustomFoodAPIClient.searchProducts(any)).thenAnswer((_) async =>
+          SearchResult.fromJson(failResultTyped[0]));
+
+      await tester.pumpWidget(MaterialApp(
+        home: AddFoodPage(selectedDate: selectedDate.toString(), client: mockcustomFoodAPIClient,),
+      ));
+
+      var searchField = find.ancestor(
+          of: find.text('Search'),
+          matching: find.byType(TextField));
+
+      await tester.enterText(searchField, 'pringles');
+
+      var gramsField = find.ancestor(
+          of: find.text('grams'),
+          matching: find.byType(TextField));
+
+      await tester.enterText(gramsField, '50');
+
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Morning'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Afternoon'));
+
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.search));
+      await tester.pump(Duration(seconds: 1));
+
+      verify(mockcustomFoodAPIClient.searchProducts('pringles')).called(1);
+
+      expect(find.text('No items found'), findsOneWidget);
+    });
+
+    testWidgets('open barcode scanner', (
+        tester,
+        ) async {
+
+      await tester.pumpWidget(MaterialApp(
+        home: AddFoodPage(selectedDate: selectedDate.toString()),
+      ));
+
+      await tester.tap(find.byIcon(Icons.barcode_reader));
+      await tester.pumpAndSettle(Duration(seconds: 2));
+
     });
 
 
@@ -172,7 +247,6 @@ void main() async {
       await tester.tap(find.text('Save').last);
       await tester.pumpAndSettle();
 
-      // choose different options for sex and goal
       await tester.tap(find.byIcon(Icons.calculate));
       await tester.pumpAndSettle();
 
@@ -201,7 +275,24 @@ void main() async {
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
 
-      // TODO: add test to just toggle notif on and off
+      });
+
+    testWidgets('toggle notifs on and off', (
+        tester,
+        ) async {
+      await tester.pumpWidget(const MyApp());
+
+      await tester.tap(find.text('Preferences'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(Switch));
+      await tester.pumpAndSettle();
+
+      // TODO: make system 4:59:59 so this fires
+
+      await tester.tap(find.byType(Switch));
+      await tester.pumpAndSettle();
+
     });
 
     testWidgets('manually edit pref so bar is green', (
@@ -285,19 +376,27 @@ void main() async {
     testWidgets('get food tips', (
         tester,
         ) async {
-      await tester.pumpWidget(const MyApp());
-      
-      await tester.tap(find.text('CoachPilot'));
-      await tester.pumpAndSettle();
+      MockClient mockClient = MockClient();
+      when(mockClient.post(
+          Uri.parse('http://192.168.0.130:5000/coachpilot/'),
+          headers: {
+            "Content-Type" : "application/x-www-form-urlencoded"
+          },
+          encoding: Encoding.getByName('utf-8'),
+          body: {'question' : 'What should I eat for 51 calories?' }
+      )).thenAnswer((_) async => http.Response(jsonEncode({'result':'here are some foods...'}), 200));
+
+      await tester.pumpWidget(MaterialApp(
+        home: Coachpilot(client: mockClient,),
+      ));
 
       await tester.tap(find.text('Ask'));
-      await tester.pumpAndSettle(Duration(seconds: 10));
+      await tester.pumpAndSettle(Duration(seconds: 1));
       
       expect(find.textContaining(RegExp('food|snack|nutrient', caseSensitive: false)), findsOneWidget);
     });
 
-    // delete exercise, over budget, receive exercise tips
-    testWidgets('get exercise tips', (
+    testWidgets('delete exercise', (
         tester,
         ) async {
       await tester.pumpWidget(const MyApp());
@@ -310,14 +409,57 @@ void main() async {
 
       await tester.tap(find.byIcon(Icons.delete));
       await tester.pumpAndSettle();
+    });
 
-      await tester.tap(find.text('CoachPilot'));
-      await tester.pumpAndSettle();
+    // over budget, receive exercise tips
+    testWidgets('get exercise tips', (
+        tester,
+        ) async {
+      MockClient mockClient = MockClient();
+      when(mockClient.post(
+          Uri.parse('http://192.168.0.130:5000/coachpilot/'),
+          headers: {
+            "Content-Type" : "application/x-www-form-urlencoded"
+          },
+          encoding: Encoding.getByName('utf-8'),
+          body: {'question' : 'I need to burn 609 '
+              'calories to reach my goals, '
+              'what exercise would you recommend?' }
+      )).thenAnswer((_) async => http.Response(jsonEncode({'result':'here are some exercises...'}), 200));
+
+      await tester.pumpWidget(MaterialApp(
+        home: Coachpilot(client: mockClient),
+      ));
 
       await tester.tap(find.text('Ask'));
-      await tester.pumpAndSettle(Duration(seconds: 10));
+      await tester.pumpAndSettle(Duration(seconds: 1));
 
-      expect(find.textContaining(RegExp('exercise|workout|train', caseSensitive: false)), findsOneWidget);
+      expect(find.textContaining(RegExp('exercise|workout|train|burn', caseSensitive: false)), findsOneWidget);
+    });
+
+    testWidgets('handle api error', (
+        tester,
+        ) async {
+      MockClient mockClient = MockClient();
+      when(mockClient.post(
+          Uri.parse('http://192.168.0.130:5000/coachpilot/'),
+          headers: {
+            "Content-Type" : "application/x-www-form-urlencoded"
+          },
+          encoding: Encoding.getByName('utf-8'),
+          body: {'question' : 'I need to burn 609 '
+              'calories to reach my goals, '
+              'what exercise would you recommend?' }
+      )).thenThrow(FlutterError('error'));
+
+      await tester.pumpWidget(MaterialApp(
+        home: Coachpilot(client: mockClient),
+      ));
+
+      await tester.tap(find.text('Ask'));
+      await tester.pumpAndSettle(Duration(seconds: 1));
+
+      expect(find.textContaining(RegExp('error')), findsOneWidget);
     });
 
   });
@@ -342,9 +484,3 @@ void main() async {
 
   });
 }
-
-// TODO: unit tests:
-// barcode scanning
-// 5pm notif?
-// food api error handling
-// ai api error handling

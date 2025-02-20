@@ -1,9 +1,16 @@
 import 'package:caloreasy/helpers/coachpilot_service.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import '../database/local_database.dart';
 
 class Coachpilot extends StatefulWidget {
-  const Coachpilot({super.key});
+
+  http.Client client;
+
+  Coachpilot({
+    super.key,
+    required this.client
+  });
 
   @override
   State<Coachpilot> createState() => _CoachpilotState();
@@ -87,7 +94,7 @@ class _CoachpilotState extends State<Coachpilot> {
                 padding: const EdgeInsets.all(8.0),
                 child: MaterialButton(
                    color: Colors.blue,
-                   onPressed: () => aiService.getChefsResponse(questionForAI()),
+                   onPressed: () => aiService.getChefsResponse(questionForAI(), widget.client),
                    child: Text('Ask'),
                  ),
               ),

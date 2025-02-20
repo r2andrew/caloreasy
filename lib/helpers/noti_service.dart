@@ -50,6 +50,7 @@ class NotiService {
   }
   static void scheduledNotification() async {
 
+    print('got here');
     NotiService().initNotification();
 
     LocalDatabase db = LocalDatabase();

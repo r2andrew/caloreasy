@@ -8,12 +8,12 @@ class CoachpilotService {
 
   CoachpilotService(void Function(bool loaded, String response) this.loadResults);
 
-  void getChefsResponse(String question) async {
+  void getChefsResponse(String question, http.Client client) async {
 
   loadResults(false);
 
   try {
-    var response = await http.post(
+    var response = await client.post(
       Uri.parse('http://192.168.0.130:5000/coachpilot/'),
       headers: {
         "Content-Type" : "application/x-www-form-urlencoded"

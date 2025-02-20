@@ -3,6 +3,7 @@ import 'package:caloreasy/pages/graphs.dart';
 import 'package:caloreasy/pages/preferences.dart';
 import 'package:caloreasy/pages/tracker.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 class BasePage extends StatefulWidget {
   const BasePage({super.key});
@@ -41,7 +42,7 @@ class _BasePageState extends State<BasePage> {
       case 2:
         return GraphsPage();
       default:
-        return Coachpilot();
+        return Coachpilot(client: http.Client());
     }
   }
 

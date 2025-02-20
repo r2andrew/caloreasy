@@ -213,7 +213,7 @@ class _PreferencesPageState extends State<PreferencesPage> {
                             notificationsOn = db.getNotificationsStatus();
                           });
                           if (notificationsOn == true) {
-                            AndroidAlarmManager.periodic(const Duration(days: 1), 0, () => NotiService.scheduledNotification(),
+                            AndroidAlarmManager.periodic(const Duration(days: 1), 0, NotiService.scheduledNotification,
                                 startAt: todaysDate.copyWith(hour: 17), allowWhileIdle: true, wakeup: true, rescheduleOnReboot: true)
                                 .then((value) => print('Alarm Timer Started = $value'));
                           } else {
