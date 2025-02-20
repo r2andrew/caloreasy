@@ -104,6 +104,7 @@ void main() async {
     });
 
 
+    // TODO: add test to just open and close barcode scanner
   });
 
   group('add exercise', () {
@@ -200,6 +201,7 @@ void main() async {
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
 
+      // TODO: add test to just toggle notif on and off
     });
 
     testWidgets('manually edit pref so bar is green', (

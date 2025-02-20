@@ -46,3 +46,4 @@ app.*.map.json
 
 /coverage
 /android/build
+/test/hive_testing_path

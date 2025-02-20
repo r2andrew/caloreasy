@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:caloreasy/components/returned_food_tile.dart';
 import 'package:caloreasy/database/local_database.dart';
+import 'package:caloreasy/helpers/customFoodAPIClient.dart';
 import 'package:caloreasy/helpers/food_service.dart';
 import 'package:caloreasy/pages/barcode_scanner.dart';
 import 'package:flutter/material.dart';
@@ -11,8 +12,15 @@ import 'package:openfoodfacts/openfoodfacts.dart';
 class AddFoodPage extends StatefulWidget {
 
   final String selectedDate;
+  // inject client at this level
+  // so it can be injected and mocked for add food page tests
+  final customFoodAPIClient client;
 
-  AddFoodPage({super.key, required this.selectedDate});
+  AddFoodPage({
+    super.key,
+    required this.selectedDate,
+    this.client = const customFoodAPIClient()
+  });
 
   @override
   State<AddFoodPage> createState() => _AddFoodPageState();
@@ -49,7 +57,7 @@ class _AddFoodPageState extends State<AddFoodPage> {
         selectedTime
     );
   }
-  // TODO: api error handling
+
   // callback function for food service
   void loadResults (bool loaded, String error, [List<Product?>? products]) {
     if (!loaded) {
@@ -118,7 +126,7 @@ class _AddFoodPageState extends State<AddFoodPage> {
                         padding: const EdgeInsets.all(8.0),
                         child: MaterialButton(
                           color: Colors.grey[800],
-                          onPressed: () => foodService.getProductsBySearch(_searchController.text ?? ''),
+                          onPressed: () => foodService.getProductsBySearch(_searchController.text ?? '', widget.client),
                           child: Row(
                             children: [
                               Text('Search'),

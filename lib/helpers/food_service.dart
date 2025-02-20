@@ -1,18 +1,13 @@
+import 'package:caloreasy/helpers/customFoodAPIClient.dart';
 import 'package:openfoodfacts/openfoodfacts.dart';
 
 class FoodService {
 
   Function loadResults;
 
-  // OpenFoodAPI creds
-  final User? user = User(
-      userId: 'r2andrew',
-      password: 'caloreasy'
-  );
-
   FoodService(void Function(bool loaded, String error, [List<Product?> products]) this.loadResults);
 
-  void getProductsBySearch(String searchTerm) async {
+  void getProductsBySearch(String searchTerm, customFoodAPIClient client) async {
 
     loadResults(false, '');
 
@@ -23,18 +18,7 @@ class FoodService {
       <OpenFoodFactsLanguage>[OpenFoodFactsLanguage.ENGLISH];
     OpenFoodAPIConfiguration.globalCountry = OpenFoodFactsCountry.UNITED_KINGDOM;
 
-    final ProductSearchQueryConfiguration configuration = ProductSearchQueryConfiguration(
-        parametersList: <Parameter>[
-          SearchTerms(terms: [searchTerm])
-        ],
-        version: ProductQueryVersion.v3,
-        fields: [
-          ProductField.NAME,
-          ProductField.NUTRIMENTS
-        ]
-    );
-    final SearchResult result =
-    await OpenFoodAPIClient.searchProducts(user, configuration);
+    final SearchResult result = await client.searchProducts(searchTerm);
 
     List<Product?> returnedProducts = [];
 
