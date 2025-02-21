@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="caloreasy"
+        android:label="Caloreasy"
         android:name="${applicationName}"
         android:icon="@mipmap/caloreasy_launcher">
         <activity
