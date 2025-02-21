@@ -10,10 +10,14 @@ import '../helpers/noti_service.dart';
 class PreferencesPage extends StatefulWidget {
 
   Function goToTracker;
+  DateTime notifAlarmStartFromTime;
+  Duration alarmFreq;
 
   PreferencesPage({
     super.key,
-    required this.goToTracker
+    required this.goToTracker,
+    required this.notifAlarmStartFromTime,
+    required this.alarmFreq
   });
 
   @override
@@ -213,9 +217,14 @@ class _PreferencesPageState extends State<PreferencesPage> {
                             notificationsOn = db.getNotificationsStatus();
                           });
                           if (notificationsOn == true) {
-                            AndroidAlarmManager.periodic(const Duration(days: 1), 0, NotiService.scheduledNotification,
-                                startAt: todaysDate.copyWith(hour: 17), allowWhileIdle: true, wakeup: true, rescheduleOnReboot: true)
-                                .then((value) => print('Alarm Timer Started = $value'));
+                            print(widget.notifAlarmStartFromTime.toString());
+                            AndroidAlarmManager.periodic(widget.alarmFreq, 0, NotiService.scheduledNotification,
+                                startAt: widget.notifAlarmStartFromTime, allowWhileIdle: true, wakeup: true, rescheduleOnReboot: true)
+                                .then((value) => print(
+                                  'Alarm Timer Started = $value\n'
+                                  'Start time = ${DateTime.now().toString()}\n'
+                                  'Fire time = ${DateTime.now().add(Duration(minutes: 1)).toString()}'
+                            ));
                           } else {
                             AndroidAlarmManager.cancel(0).then((value) => print('Alarm Timer Canceled = $value'));
                           }

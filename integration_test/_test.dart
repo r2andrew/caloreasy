@@ -4,8 +4,10 @@ import 'dart:ui';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:caloreasy/components/returned_food_tile.dart';
 import 'package:caloreasy/helpers/customFoodAPIClient.dart';
+import 'package:caloreasy/helpers/noti_service.dart';
 import 'package:caloreasy/pages/add_food.dart';
 import 'package:caloreasy/pages/coachpilot.dart';
+import 'package:caloreasy/pages/preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
@@ -23,6 +25,8 @@ import 'data.dart';
 void main() async {
 
   await Hive.initFlutter();
+
+  NotiService().initNotification();
 
   final _foodEntriesBox = await Hive.openBox('userFoodEntries');
   _foodEntriesBox.clear();
@@ -176,10 +180,10 @@ void main() async {
       await tester.tap(find.byIcon(Icons.barcode_reader));
       await tester.pumpAndSettle(Duration(seconds: 2));
 
+      // TODO: close
+
     });
 
-
-    // TODO: add test to just open and close barcode scanner
   });
 
   group('add exercise', () {
@@ -276,24 +280,6 @@ void main() async {
       await tester.pumpAndSettle();
 
       });
-
-    testWidgets('toggle notifs on and off', (
-        tester,
-        ) async {
-      await tester.pumpWidget(const MyApp());
-
-      await tester.tap(find.text('Preferences'));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byType(Switch));
-      await tester.pumpAndSettle();
-
-      // TODO: make system 4:59:59 so this fires
-
-      await tester.tap(find.byType(Switch));
-      await tester.pumpAndSettle();
-
-    });
 
     testWidgets('manually edit pref so bar is green', (
         tester,
@@ -480,6 +466,41 @@ void main() async {
       await tester.pumpAndSettle();
 
       expect(find.text('Pringles Original'), findsNothing);
+    });
+
+  });
+
+  group('notifications', () {
+
+    testWidgets('fire scheduled notification', (
+        tester,
+        ) async {
+      // if alarm is active, it will activate each day with the trigger time being
+      // 1 min from this test starting
+      // The minimum time the alarm manager can fire is 1 minute which makes testing a hassle but oh well.
+      DateTime notifAlarmStartFromTime = DateTime.now()
+          .add(Duration(minutes: 1));
+
+      // The alarm should fire on first trigger and then repeat based on input freq
+      // for inexplicable reasons, this logic behaves as expected in actual runs
+      // but in tests, only repeat fires actually trigger the function.
+      // The workaround is to lower the duration to 1 min in this test and wait
+      // for the second trigger.
+      const alarmFreq = Duration(minutes: 1);
+
+      await tester.pumpWidget(MaterialApp(
+        home: PreferencesPage(
+            goToTracker: () => (),
+            notifAlarmStartFromTime: notifAlarmStartFromTime,
+            alarmFreq: alarmFreq,
+        ),
+      ));
+
+      await tester.tap(find.byType(Switch));
+      await tester.pumpAndSettle(Duration(minutes: 2, seconds: 30));
+
+      await tester.tap(find.byType(Switch));
+      await tester.pumpAndSettle();
     });
 
   });

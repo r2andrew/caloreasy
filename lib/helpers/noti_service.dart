@@ -1,5 +1,7 @@
 // credit: mitch koko
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/adapters.dart';
 import '../database/local_database.dart';
 
 class NotiService {
@@ -20,8 +22,6 @@ class NotiService {
 
     await notificationsPlugin.initialize(InitializationSettings(android: initSettingsAndroid, linux: initSettingsLinux));
 
-    // request notification permissions
-    await notificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()?.requestNotificationsPermission();
   }
 
   NotificationDetails notificationDetails() {
@@ -52,6 +52,14 @@ class NotiService {
 
     print('got here');
     NotiService().initNotification();
+
+    // init hive for this isolate service
+    await Hive.initFlutter();
+    final _foodEntriesBox = await Hive.openBox('userFoodEntries');
+    final _preferencesBox = await Hive.openBox('userPreferences');
+    final _exerciseEntriesBox = await Hive.openBox('userExerciseEntries');
+    final _notificationsBox = await Hive.openBox('notifications');
+    final _weightBox = await Hive.openBox('userWeightEntries');
 
     LocalDatabase db = LocalDatabase();
 

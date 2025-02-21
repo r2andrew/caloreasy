@@ -18,8 +18,8 @@ class _BasePageState extends State<BasePage> {
 
   DateTime selectedDate = DateTime.now()
       .copyWith(hour: 0, minute: 0, second: 0, millisecond: 0, microsecond: 0);
-  DateTime todaysDate = DateTime.now()
-      .copyWith(hour: 0, minute: 0, second: 0, millisecond: 0, microsecond: 0);
+  DateTime notifAlarmStartFromTime = DateTime.now()
+      .add(Duration(minutes: 1));
 
   void navigateBottomBar (int index) {
     setState(() {
@@ -38,7 +38,11 @@ class _BasePageState extends State<BasePage> {
       case 0:
         return TrackerPage();
       case 1:
-        return PreferencesPage(goToTracker: goToTracker);
+        return PreferencesPage(
+            goToTracker: goToTracker,
+            notifAlarmStartFromTime: notifAlarmStartFromTime,
+            alarmFreq: Duration(days: 1),
+        );
       case 2:
         return GraphsPage();
       default:

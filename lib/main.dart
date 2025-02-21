@@ -1,6 +1,7 @@
 import 'package:caloreasy/helpers/noti_service.dart';
 import 'package:caloreasy/pages/base_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
@@ -23,8 +24,12 @@ void main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
 
-  // get notifications permission / init service
-  NotiService().initNotification();
+  // request notification permissions if not gotten already
+  final notificationsPlugin = FlutterLocalNotificationsPlugin();
+
+  await notificationsPlugin
+      .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+      ?.requestNotificationsPermission();
 
   // initialise Alarm (notif scheduler) service if on android
   // debugging on linux crashes otherwise
