@@ -2,7 +2,7 @@
     <application
         android:label="caloreasy"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/caloreasy_launcher">
         <activity
             android:name=".MainActivity"
             android:exported="true"

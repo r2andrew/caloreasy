@@ -14,8 +14,7 @@ class NotiService {
   Future<void> initNotification() async {
     if (_isInitialized) return;
 
-    // TODO: add custom icon
-    const initSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const initSettingsAndroid = AndroidInitializationSettings('@mipmap/caloreasy_launcher');
 
     // linux configured for debug purposes
     const initSettingsLinux = LinuxInitializationSettings(defaultActionName: 'Log Food');
