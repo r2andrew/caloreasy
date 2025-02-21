@@ -14,7 +14,7 @@ class CoachpilotService {
 
   try {
     var response = await client.post(
-      Uri.parse('http://192.168.0.130:5000/coachpilot/'),
+      Uri.parse('http://81.104.226.155/coachpilot/'),
       headers: {
         "Content-Type" : "application/x-www-form-urlencoded"
       },
