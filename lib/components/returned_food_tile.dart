@@ -40,7 +40,7 @@ class _ReturnedFoodTileState extends State<ReturnedFoodTile> {
                                 : '${widget.food.productName!.substring(0, 30)}...'
                           }"
                           + '\nCalories / 100g : '
-                            '${widget.food.nutriments!.getComputedKJ(PerSize.oneHundredGrams)?.toInt()}'
+                            '${(widget.food.nutriments!.getComputedKJ(PerSize.oneHundredGrams)! * 0.239 ).toInt()}'
                     ),
                   ),
 

@@ -14,7 +14,6 @@ class LocalDatabase {
 
   // Map
   // date : {}
-  // TODO: rename to goals in light of notifications
   final _preferencesBox = Hive.box('userPreferences');
 
   final _notificationsBox = Hive.box('notifications');
@@ -133,8 +132,8 @@ class LocalDatabase {
       var foodList = getFoodEntriesForDate(selectedDate)[time] ?? [];
       for (var food in foodList) {
         caloriesConsumed +=
-            ((food.nutriments!.getComputedKJ(PerSize.oneHundredGrams) ?? 0) *
-                (int.parse(food.quantity!) / 100)).toInt();
+            (((food.nutriments!.getComputedKJ(PerSize.oneHundredGrams) ?? 0) *
+                (int.parse(food.quantity!) / 100)) * 0.239 ).toInt();
         proteinConsumed +=
             ((food.nutriments!.getValue(Nutrient.proteins, PerSize.oneHundredGrams) ?? 0) *
                 (int.parse(food.quantity!) / 100)).toInt();

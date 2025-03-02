@@ -180,8 +180,6 @@ void main() async {
       await tester.tap(find.byIcon(Icons.barcode_reader));
       await tester.pumpAndSettle(Duration(seconds: 2));
 
-      // TODO: close
-
     });
 
   });

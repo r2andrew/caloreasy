@@ -9,10 +9,9 @@ class Exercise {
     duration = minutes;
 
     var calValues = {
-      //TODO: expand this
-      'RUN': 10,
-      'WALK': 5,
-      'SWIM': 12
+      'RUN': 11,
+      'WALK': 4,
+      'SWIM': 13
     };
 
     calBurned = calValues[name]! * minutes;
