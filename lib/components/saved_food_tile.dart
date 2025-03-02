@@ -44,8 +44,8 @@ class SavedFoodTile extends StatelessWidget {
             Row(
               children: [
                 Icon(Icons.energy_savings_leaf),
-                Text('\t${((food.nutriments!.getComputedKJ(PerSize.oneHundredGrams) ?? 0 *
-                    (int.parse(food.quantity!) / 100)) * 0.239 ).toInt()}')
+                Text('\t${(((food.nutriments!.getComputedKJ(PerSize.oneHundredGrams)! * 0.239) *
+                    (int.parse(food.quantity!) / 100))).toInt()}')
               ],
             ),
           ],
