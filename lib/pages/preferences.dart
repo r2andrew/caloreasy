@@ -3,6 +3,7 @@ import 'package:caloreasy/components/sub_heading.dart';
 import 'package:caloreasy/database/local_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../components/tdee_dialog.dart';
 import '../helpers/noti_service.dart';
@@ -211,20 +212,27 @@ class _PreferencesPageState extends State<PreferencesPage> {
                         }),
                         thumbColor: const WidgetStatePropertyAll<Color>(Colors.white),
                         value: notificationsOn,
-                        onChanged: (value) {
+                        onChanged: (value) async {
                           setState(() {
                             db.toggleNotificationsStatus();
                             notificationsOn = db.getNotificationsStatus();
                           });
                           if (notificationsOn == true) {
-                            print(widget.notifAlarmStartFromTime.toString());
-                            AndroidAlarmManager.periodic(widget.alarmFreq, 0, NotiService.scheduledNotification,
-                                startAt: widget.notifAlarmStartFromTime, allowWhileIdle: true, wakeup: true, rescheduleOnReboot: true)
-                                .then((value) => print(
-                                  'Alarm Timer Started = $value\n'
-                                  'Start time = ${DateTime.now().toString()}\n'
-                                  'Fire time = ${DateTime.now().add(Duration(minutes: 1)).toString()}'
-                            ));
+                            if (await Permission.scheduleExactAlarm.request().isGranted) {
+                              AndroidAlarmManager.periodic(widget.alarmFreq, 0,
+                                  NotiService.scheduledNotification,
+                                  startAt: widget.notifAlarmStartFromTime,
+                                  exact: true)
+                                  .then((value) =>
+                                  print(
+                                      'Alarm Timer Started = $value\n'
+                                          'Start time = ${DateTime
+                                          .now()
+                                          .toString()}\n'
+                                          'Fire time = ${widget
+                                          .notifAlarmStartFromTime.toString()}'
+                                  ));
+                            }
                           } else {
                             AndroidAlarmManager.cancel(0).then((value) => print('Alarm Timer Canceled = $value'));
                           }

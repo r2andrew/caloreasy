@@ -54,7 +54,7 @@ class NotiService {
   static void scheduledNotification() async {
 
     print('got here');
-    NotiService().initNotification();
+    await NotiService().initNotification();
 
     // init hive for this isolate service
     await Hive.initFlutter();

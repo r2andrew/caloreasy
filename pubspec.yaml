@@ -44,6 +44,7 @@ dependencies:
   android_alarm_manager_plus: ^4.0.6
   fl_chart: ^0.70.2
   mobile_scanner: ^6.0.6
+  permission_handler: ^11.4.0
 
 dev_dependencies:
   flutter_test:
