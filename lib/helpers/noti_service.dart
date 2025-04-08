@@ -1,8 +1,10 @@
-// credit: mitch koko
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/adapters.dart';
 import '../database/local_database.dart';
+
+// credit: mitch koko
+// https://www.youtube.com/watch?v=uKz8tWbMuUw&feature=youtu.be
 
 class NotiService {
   final notificationsPlugin = FlutterLocalNotificationsPlugin();
@@ -47,6 +49,8 @@ class NotiService {
         notificationDetails()
     );
   }
+
+  //credit: student
   static void scheduledNotification() async {
 
     print('got here');
